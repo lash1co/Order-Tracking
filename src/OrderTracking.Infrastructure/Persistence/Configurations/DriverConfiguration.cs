@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NetTopologySuite.Geometries;
 using OrderTracking.Domain.Drivers;
 
 namespace OrderTracking.Infrastructure.Persistence.Configurations;
@@ -19,6 +20,9 @@ internal sealed class DriverConfiguration : IEntityTypeConfiguration<Driver>
             location.Property(value => value.Latitude).HasColumnName("CurrentLat");
             location.Property(value => value.Longitude).HasColumnName("CurrentLong");
         });
+        builder.Property<Point>("Location")
+            .HasColumnType("geography")
+            .IsRequired();
         builder.HasIndex(driver => driver.Status);
     }
 }

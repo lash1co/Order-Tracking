@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderTracking.Domain.Exceptions;
+using OrderTracking.Application.Common.Exceptions;
 
 namespace OrderTracking.API.Errors;
 
@@ -16,6 +17,9 @@ internal sealed partial class GlobalExceptionHandler(
     {
         var (status, title) = exception switch
         {
+            NotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
+            ConflictException => (StatusCodes.Status409Conflict, "Concurrency conflict"),
+            ArgumentException => (StatusCodes.Status400BadRequest, "Invalid request"),
             DomainException => (StatusCodes.Status400BadRequest, "Business rule violation"),
             DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "Concurrency conflict"),
             _ => (StatusCodes.Status500InternalServerError, "Unexpected server error")

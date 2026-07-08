@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\OrderTracking.Application\OrderTracking.Application.csproj" />
     <ProjectReference Include="..\..\src\OrderTracking.Domain\OrderTracking.Domain.csproj" />
   </ItemGroup>
 

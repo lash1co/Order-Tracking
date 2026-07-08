@@ -4,7 +4,7 @@ Real-time food-delivery tracking platform built with .NET 8 and React. The repos
 
 ## Current phase
 
-`phase/01-foundation` establishes Clean Architecture, the domain model, EF Core persistence, error handling and unit tests.
+`phase/02-use-cases` adds CQRS use cases, repositories, REST endpoints, JWT security, optimistic concurrency and indexed geospatial queries.
 
 ## Requirements
 
@@ -37,10 +37,19 @@ dotnet ef database update `
 
 The default connection string is intended only for local development. Override it with `ConnectionStrings__OrderTracking` in real environments.
 
+The API deliberately fails fast when no secure JWT key is configured. For local use, set a value of at least 32 bytes without committing it:
+
+```powershell
+$env:Jwt__SigningKey = "your-local-signing-key-at-least-32-bytes"
+dotnet run --project src/OrderTracking.API
+```
+
+Swagger UI is available at `/swagger` in Development. Token issuance is expected to be handled by an external identity provider; this API validates issuer, audience, signature and lifetime.
+
 ## Branch workflow
 
 - `main`: stable releases.
 - `develop`: integration branch.
-- `phase/01-foundation`: current implementation branch.
+- `phase/02-use-cases`: current implementation branch.
 
 Each phase is validated and merged into `develop` before the next phase branch is created.

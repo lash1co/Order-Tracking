@@ -1,6 +1,12 @@
-@OrderTracking.API_HostAddress = http://localhost:5157
+@host = http://localhost:5000
+@token = replace-with-jwt
 
-GET {{OrderTracking.API_HostAddress}}/weatherforecast/
-Accept: application/json
+GET {{host}}/health/live
 
-###
+### Active orders
+GET {{host}}/api/v1/orders/active?page=1&pageSize=50
+Authorization: Bearer {{token}}
+
+### Nearby drivers
+GET {{host}}/api/v1/drivers/nearby?latitude=4.711&longitude=-74.0721&radiusMeters=5000
+Authorization: Bearer {{token}}

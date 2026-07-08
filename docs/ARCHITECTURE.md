@@ -17,7 +17,7 @@ Infrastructure -> Domain
 
 ## Consistency
 
-`Order` and `Driver` use SQL Server `rowversion` columns. Phase 2 will pass these concurrency tokens through commands and return HTTP 409 when a competing update wins.
+`Order` and `Driver` use SQL Server `rowversion` columns. Update commands carry the version returned by the API. Stale versions and EF Core concurrency races return HTTP 409.
 
 All domain dates are represented as `DateTimeOffset` and normalized to UTC at entity boundaries.
 
@@ -25,11 +25,10 @@ All domain dates are represented as `DateTimeOffset` and normalized to UTC at en
 
 The initial migration creates Orders, OrderItems, Drivers and DriverAssignments with foreign keys and indexes for the primary query paths. The generated idempotent SQL script is stored under `scripts/database`.
 
-Driver coordinates are represented by a validated domain value object and persisted as the requested latitude/longitude columns. The indexed SQL Server geography representation and nearest-driver query belong to phase 2.
+Driver coordinates are represented by a validated domain value object and persisted as latitude/longitude columns. Infrastructure synchronizes an additional SQL Server `geography` point and the migration creates a spatial index for nearest-driver queries.
 
 ## Decisions deferred to later phases
 
-- CQRS handlers and repositories: phase 2.
 - SignalR, Redis, RabbitMQ and transactional outbox: phase 3.
 - React dashboard: phase 4.
 - Integration, E2E and load tests: phase 5.

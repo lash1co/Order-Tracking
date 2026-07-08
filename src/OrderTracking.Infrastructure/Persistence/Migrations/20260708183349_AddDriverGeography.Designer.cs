@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using OrderTracking.Infrastructure.Persistence;
@@ -12,9 +13,11 @@ using OrderTracking.Infrastructure.Persistence;
 namespace OrderTracking.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(OrderTrackingDbContext))]
-    partial class OrderTrackingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260708183349_AddDriverGeography")]
+    partial class AddDriverGeography
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
