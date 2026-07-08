@@ -1,9 +1,18 @@
+using OrderTracking.Application.Abstractions.Caching;
+using OrderTracking.Application.Abstractions.Messaging;
 using OrderTracking.Application.Abstractions.Persistence;
+using OrderTracking.Application.Abstractions.Realtime;
+using OrderTracking.Application.Events;
 using OrderTracking.Domain.Orders;
 
 namespace OrderTracking.Application.Orders.CreateOrder;
 
-public sealed class CreateOrderHandler(IOrderRepository orders, IUnitOfWork unitOfWork)
+public sealed class CreateOrderHandler(
+    IOrderRepository orders,
+    IUnitOfWork unitOfWork,
+    IActiveOrdersCache cache,
+    ITrackingNotifier notifier,
+    IOrderTrackingEventPublisher eventPublisher)
 {
     public async Task<OrderDto> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
     {
@@ -17,6 +26,12 @@ public sealed class CreateOrderHandler(IOrderRepository orders, IUnitOfWork unit
 
         await orders.AddAsync(order, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return OrderDto.From(order);
+        var dto = OrderDto.From(order);
+        await cache.InvalidateAsync(cancellationToken);
+        await notifier.OrderChangedAsync(dto, cancellationToken);
+        await eventPublisher.PublishAsync(
+            new OrderStatusChangedEvent(order.Id, order.Status, now, order.EstimatedDelivery, order.ActualDelivery),
+            cancellationToken);
+        return dto;
     }
 }

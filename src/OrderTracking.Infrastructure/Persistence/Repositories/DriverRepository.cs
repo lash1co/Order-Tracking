@@ -32,4 +32,11 @@ internal sealed class DriverRepository(OrderTrackingDbContext dbContext) : IDriv
             .Take(take)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<Driver>> GetForLocationSimulationAsync(int take, CancellationToken cancellationToken) =>
+        await dbContext.Drivers
+            .Where(driver => driver.Status != DriverStatus.Offline)
+            .OrderBy(driver => driver.Id)
+            .Take(take)
+            .ToListAsync(cancellationToken);
 }

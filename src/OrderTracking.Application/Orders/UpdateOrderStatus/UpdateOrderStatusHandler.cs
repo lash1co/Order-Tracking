@@ -1,12 +1,19 @@
+using OrderTracking.Application.Abstractions.Caching;
+using OrderTracking.Application.Abstractions.Messaging;
 using OrderTracking.Application.Abstractions.Persistence;
+using OrderTracking.Application.Abstractions.Realtime;
 using OrderTracking.Application.Common.Exceptions;
+using OrderTracking.Application.Events;
 
 namespace OrderTracking.Application.Orders.UpdateOrderStatus;
 
 public sealed class UpdateOrderStatusHandler(
     IOrderRepository orders,
     IDriverAssignmentRepository assignments,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IActiveOrdersCache cache,
+    ITrackingNotifier notifier,
+    IOrderTrackingEventPublisher eventPublisher)
 {
     public async Task<OrderDto> Handle(UpdateOrderStatusCommand command, CancellationToken cancellationToken)
     {
@@ -29,6 +36,12 @@ public sealed class UpdateOrderStatusHandler(
         var hasDriver = await assignments.HasActiveForOrderAsync(order.Id, cancellationToken);
         order.ChangeStatus(command.Status, DateTimeOffset.UtcNow, hasDriver);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return OrderDto.From(order);
+        var dto = OrderDto.From(order);
+        await cache.InvalidateAsync(cancellationToken);
+        await notifier.OrderChangedAsync(dto, cancellationToken);
+        await eventPublisher.PublishAsync(
+            new OrderStatusChangedEvent(order.Id, order.Status, DateTimeOffset.UtcNow, order.EstimatedDelivery, order.ActualDelivery),
+            cancellationToken);
+        return dto;
     }
 }

@@ -4,12 +4,13 @@ Real-time food-delivery tracking platform built with .NET 8 and React. The repos
 
 ## Current phase
 
-`phase/02-use-cases` adds CQRS use cases, repositories, REST endpoints, JWT security, optimistic concurrency and indexed geospatial queries.
+`phase/03-realtime-events` adds SignalR live updates, optional Redis active-order caching, optional RabbitMQ integration events and a configurable background driver movement simulator.
 
 ## Requirements
 
 - .NET SDK 8
 - SQL Server (required when running migrations or the API against a database)
+- Redis and RabbitMQ are optional in this phase. They are disabled by default and can be enabled through configuration.
 
 ## Build and test
 
@@ -46,10 +47,26 @@ dotnet run --project src/OrderTracking.API
 
 Swagger UI is available at `/swagger` in Development. Token issuance is expected to be handled by an external identity provider; this API validates issuer, audience, signature and lifetime.
 
+## Real-time and eventing configuration
+
+SignalR is exposed at `/hubs/tracking`. Browser clients can pass the bearer token through the normal `Authorization` header or the `access_token` query parameter used by SignalR transports.
+
+Optional runtime features:
+
+```powershell
+$env:Redis__Enabled = "true"
+$env:Redis__Configuration = "localhost:6379"
+$env:RabbitMQ__Enabled = "true"
+$env:RabbitMQ__HostName = "localhost"
+$env:DriverMovementSimulator__Enabled = "true"
+```
+
+When Redis or RabbitMQ are disabled, the application uses no-op adapters so local API development remains simple. In Development, the driver simulator is enabled by default and retries on transient database failures.
+
 ## Branch workflow
 
 - `main`: stable releases.
 - `develop`: integration branch.
-- `phase/02-use-cases`: current implementation branch.
+- `phase/03-realtime-events`: current implementation branch.
 
 Each phase is validated and merged into `develop` before the next phase branch is created.

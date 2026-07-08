@@ -17,6 +17,17 @@ Base path: `/api/v1`. All business endpoints require a JWT bearer token. Roles u
 - `GET /drivers/nearby` accepts `latitude`, `longitude`, `radiusMeters` and `take`. Radius is capped at 50 km and results at 100.
 - `GET /drivers/{id}/performance` returns completed deliveries and average delivery minutes.
 
+## SignalR hub
+
+- Hub path: `/hubs/tracking`.
+- Authentication: JWT bearer. SignalR clients may use `access_token` in the query string during the WebSocket/SSE negotiation.
+- On connect, clients are added to the `dashboard` group automatically. They can also call `SubscribeDashboard` and `UnsubscribeDashboard`.
+
+Server-to-client events:
+
+- `order.changed`: emits the latest `OrderDto` after create/status changes.
+- `driver.location.changed`: emits driver id, name, vehicle type, status, latitude, longitude and update timestamp.
+
 ## Errors and limits
 
 Errors use `application/problem+json`. Business validation returns 400, missing resources 404, concurrency conflicts 409 and unexpected errors 500. Requests are limited to 100 per minute per authenticated user or source IP.

@@ -1,5 +1,9 @@
+using OrderTracking.Application.Abstractions.Caching;
+using OrderTracking.Application.Abstractions.Messaging;
 using OrderTracking.Application.Abstractions.Persistence;
+using OrderTracking.Application.Abstractions.Realtime;
 using OrderTracking.Application.Common.Exceptions;
+using OrderTracking.Application.Drivers;
 using OrderTracking.Application.Drivers.CreateDriver;
 using OrderTracking.Application.Drivers.GetDriverPerformance;
 using OrderTracking.Application.Drivers.GetNearestDrivers;
@@ -8,6 +12,7 @@ using OrderTracking.Application.Orders.AssignDriver;
 using OrderTracking.Application.Orders.CreateOrder;
 using OrderTracking.Application.Orders.GetActiveOrders;
 using OrderTracking.Application.Orders.GetOrder;
+using OrderTracking.Application.Orders;
 using OrderTracking.Application.Orders.UpdateOrderStatus;
 using OrderTracking.Domain.Assignments;
 using OrderTracking.Domain.Drivers;
@@ -21,7 +26,7 @@ public sealed class HandlerTests
     public async Task CreateOrderPersistsOrderAndItems()
     {
         var store = new FakeStore();
-        var handler = new CreateOrderHandler(store, store);
+        var handler = new CreateOrderHandler(store, store, store, store, store);
         var command = new CreateOrderCommand(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -39,7 +44,7 @@ public sealed class HandlerTests
     public async Task CreateOrderWithoutItemsThrows()
     {
         var store = new FakeStore();
-        var handler = new CreateOrderHandler(store, store);
+        var handler = new CreateOrderHandler(store, store, store, store, store);
         var command = new CreateOrderCommand(
             Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow.AddHours(1), []);
 
@@ -73,7 +78,7 @@ public sealed class HandlerTests
         var store = new FakeStore();
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
-            new GetActiveOrdersHandler(store).Handle(new GetActiveOrdersQuery(0, 50), CancellationToken.None));
+            new GetActiveOrdersHandler(store, store).Handle(new GetActiveOrdersQuery(0, 50), CancellationToken.None));
     }
 
     [Fact]
@@ -82,7 +87,7 @@ public sealed class HandlerTests
         var store = new FakeStore();
         var order = CreateOrder();
         store.Orders.Add(order);
-        var handler = new UpdateOrderStatusHandler(store, store, store);
+        var handler = new UpdateOrderStatusHandler(store, store, store, store, store, store);
 
         await Assert.ThrowsAsync<ConflictException>(() => handler.Handle(
             new UpdateOrderStatusCommand(order.Id, OrderStatus.Preparing, "AQ=="), CancellationToken.None));
@@ -94,7 +99,7 @@ public sealed class HandlerTests
         var store = new FakeStore();
         var order = CreateOrder();
         store.Orders.Add(order);
-        var handler = new UpdateOrderStatusHandler(store, store, store);
+        var handler = new UpdateOrderStatusHandler(store, store, store, store, store, store);
 
         await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(
             new UpdateOrderStatusCommand(order.Id, OrderStatus.Preparing, "not-base64"), CancellationToken.None));
@@ -106,7 +111,7 @@ public sealed class HandlerTests
         var store = new FakeStore();
         var order = CreateOrder();
         store.Orders.Add(order);
-        var handler = new UpdateOrderStatusHandler(store, store, store);
+        var handler = new UpdateOrderStatusHandler(store, store, store, store, store, store);
 
         var result = await handler.Handle(
             new UpdateOrderStatusCommand(order.Id, OrderStatus.Preparing, string.Empty), CancellationToken.None);
@@ -134,7 +139,7 @@ public sealed class HandlerTests
         var driver = CreateDriver();
         store.Drivers.Add(driver);
 
-        await new UpdateDriverLocationHandler(store, store).Handle(
+        await new UpdateDriverLocationHandler(store, store, store, store).Handle(
             new UpdateDriverLocationCommand(driver.Id, 4.7, -74.1), CancellationToken.None);
 
         Assert.Equal(4.7, driver.CurrentLocation.Latitude);
@@ -150,7 +155,7 @@ public sealed class HandlerTests
         store.Orders.Add(order);
         store.Drivers.Add(driver);
 
-        var id = await new AssignDriverHandler(store, store, store, store).Handle(
+        var id = await new AssignDriverHandler(store, store, store, store, store, store, store).Handle(
             new AssignDriverCommand(order.Id, driver.Id), CancellationToken.None);
 
         Assert.Equal(id, Assert.Single(store.Assignments).Id);
@@ -167,7 +172,7 @@ public sealed class HandlerTests
         store.Drivers.Add(driver);
 
         await Assert.ThrowsAsync<ConflictException>(() =>
-            new AssignDriverHandler(store, store, store, store).Handle(
+            new AssignDriverHandler(store, store, store, store, store, store, store).Handle(
                 new AssignDriverCommand(order.Id, driver.Id), CancellationToken.None));
     }
 
@@ -206,7 +211,10 @@ public sealed class HandlerTests
         IOrderRepository,
         IDriverRepository,
         IDriverAssignmentRepository,
-        IUnitOfWork
+        IUnitOfWork,
+        IActiveOrdersCache,
+        ITrackingNotifier,
+        IOrderTrackingEventPublisher
     {
         public List<Order> Orders { get; } = [];
         public List<Driver> Drivers { get; } = [];
@@ -244,6 +252,9 @@ public sealed class HandlerTests
             CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<DriverDistance>>(NearbyDrivers.Take(take).ToArray());
 
+        public Task<IReadOnlyList<Driver>> GetForLocationSimulationAsync(int take, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<Driver>>(Drivers.Take(take).ToArray());
+
         public Task AddAsync(DriverAssignment assignment, CancellationToken cancellationToken)
         {
             Assignments.Add(assignment);
@@ -264,5 +275,21 @@ public sealed class HandlerTests
             SaveCount++;
             return Task.FromResult(1);
         }
+
+        public Task<IReadOnlyList<OrderDto>?> GetAsync(int skip, int take, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<OrderDto>?>(null);
+
+        public Task SetAsync(int skip, int take, IReadOnlyList<OrderDto> orders, CancellationToken cancellationToken) =>
+            Task.CompletedTask;
+
+        public Task InvalidateAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task OrderChangedAsync(OrderDto order, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task DriverLocationChangedAsync(DriverLocationDto driverLocation, CancellationToken cancellationToken) =>
+            Task.CompletedTask;
+
+        public Task PublishAsync<TEvent>(TEvent integrationEvent, CancellationToken cancellationToken)
+            where TEvent : notnull => Task.CompletedTask;
     }
 }

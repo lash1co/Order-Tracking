@@ -1,10 +1,14 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Threading.RateLimiting;
 using OrderTracking.API.Errors;
+using OrderTracking.API.Realtime;
+using OrderTracking.API.Simulation;
+using OrderTracking.Application.Abstractions.Realtime;
 using OrderTracking.Application.Drivers.GetDriverPerformance;
 using OrderTracking.Application.Drivers.GetNearestDrivers;
 using OrderTracking.Application.Drivers.CreateDriver;
@@ -19,6 +23,18 @@ using OrderTracking.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/json"]);
+});
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+    options.MaximumReceiveMessageSize = 32 * 1024;
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(45);
+});
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddHealthChecks();
@@ -32,6 +48,9 @@ builder.Services.AddScoped<GetNearestDriversHandler>();
 builder.Services.AddScoped<GetDriverPerformanceHandler>();
 builder.Services.AddScoped<CreateDriverHandler>();
 builder.Services.AddScoped<UpdateDriverLocationHandler>();
+builder.Services.AddSingleton<ITrackingNotifier, SignalRTrackingNotifier>();
+builder.Services.Configure<DriverMovementOptions>(builder.Configuration.GetSection("DriverMovementSimulator"));
+builder.Services.AddHostedService<DriverMovementSimulator>();
 
 var signingKey = builder.Configuration["Jwt:SigningKey"];
 if (string.IsNullOrWhiteSpace(signingKey) || Encoding.UTF8.GetByteCount(signingKey) < 32)
@@ -51,6 +70,18 @@ builder.Services
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
             ClockSkew = TimeSpan.FromSeconds(30)
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrWhiteSpace(accessToken) && path.StartsWithSegments("/hubs/tracking"))
+                    context.Token = accessToken;
+
+                return Task.CompletedTask;
+            }
         };
     });
 builder.Services.AddAuthorization();
@@ -93,6 +124,7 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 app.UseExceptionHandler();
+app.UseResponseCompression();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -104,6 +136,7 @@ app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers().RequireRateLimiting("api");
+app.MapHub<TrackingHub>("/hubs/tracking").RequireAuthorization();
 app.MapHealthChecks("/health/live");
 
 app.Run();

@@ -12,6 +12,7 @@ public interface IDriverRepository
         double radiusMeters,
         int take,
         CancellationToken cancellationToken);
+    Task<IReadOnlyList<Driver>> GetForLocationSimulationAsync(int take, CancellationToken cancellationToken);
 }
 
 public sealed record DriverDistance(Driver Driver, double DistanceMeters);

@@ -1,5 +1,10 @@
+using OrderTracking.Application.Abstractions.Caching;
+using OrderTracking.Application.Abstractions.Messaging;
 using OrderTracking.Application.Abstractions.Persistence;
+using OrderTracking.Application.Abstractions.Realtime;
 using OrderTracking.Application.Common.Exceptions;
+using OrderTracking.Application.Drivers;
+using OrderTracking.Application.Events;
 using OrderTracking.Domain.Assignments;
 using OrderTracking.Domain.Drivers;
 
@@ -11,7 +16,10 @@ public sealed class AssignDriverHandler(
     IOrderRepository orders,
     IDriverRepository drivers,
     IDriverAssignmentRepository assignments,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IActiveOrdersCache cache,
+    ITrackingNotifier notifier,
+    IOrderTrackingEventPublisher eventPublisher)
 {
     public async Task<Guid> Handle(AssignDriverCommand command, CancellationToken cancellationToken)
     {
@@ -29,6 +37,17 @@ public sealed class AssignDriverHandler(
         driver.ChangeStatus(DriverStatus.Assigned);
         await assignments.AddAsync(assignment, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        var occurredAt = DateTimeOffset.UtcNow;
+        await cache.InvalidateAsync(cancellationToken);
+        await notifier.DriverLocationChangedAsync(DriverLocationDto.From(driver, occurredAt), cancellationToken);
+        await eventPublisher.PublishAsync(
+            new DriverLocationChangedEvent(
+                driver.Id,
+                driver.CurrentLocation.Latitude,
+                driver.CurrentLocation.Longitude,
+                driver.Status.ToString(),
+                occurredAt),
+            cancellationToken);
         return assignment.Id;
     }
 }
