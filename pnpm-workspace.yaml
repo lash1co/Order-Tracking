@@ -1,0 +1,8 @@
+packages:
+  - "src/order-tracking-ui"
+
+allowBuilds:
+  esbuild: true
+
+onlyBuiltDependencies:
+  - esbuild

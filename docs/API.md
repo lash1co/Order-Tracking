@@ -28,6 +28,16 @@ Server-to-client events:
 - `order.changed`: emits the latest `OrderDto` after create/status changes.
 - `driver.location.changed`: emits driver id, name, vehicle type, status, latitude, longitude and update timestamp.
 
+## React dashboard integration
+
+The React app calls:
+
+- `GET /api/v1/orders/active?page=1&pageSize=100` during initial load and after reconnects.
+- `PATCH /api/v1/orders/{id}/status` for optimistic status transitions.
+- `/hubs/tracking` for live reconciliation events.
+
+The dashboard stores a manually supplied bearer token in `localStorage` under `orderTracking.authToken` for local demo convenience. Production identity integration is intentionally deferred.
+
 ## Errors and limits
 
 Errors use `application/problem+json`. Business validation returns 400, missing resources 404, concurrency conflicts 409 and unexpected errors 500. Requests are limited to 100 per minute per authenticated user or source IP.

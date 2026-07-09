@@ -4,11 +4,12 @@ Real-time food-delivery tracking platform built with .NET 8 and React. The repos
 
 ## Current phase
 
-`phase/03-realtime-events` adds SignalR live updates, optional Redis active-order caching, optional RabbitMQ integration events and a configurable background driver movement simulator.
+`phase/04-react-dashboard` adds the React operations dashboard with SignalR live updates, virtualized order feed, Leaflet driver map, KPI cards, optimistic status updates, toast notifications and PWA manifest.
 
 ## Requirements
 
 - .NET SDK 8
+- Node.js 22+ and pnpm 11+
 - SQL Server (required when running migrations or the API against a database)
 - Redis and RabbitMQ are optional in this phase. They are disabled by default and can be enabled through configuration.
 
@@ -19,6 +20,21 @@ dotnet restore
 dotnet build --no-restore
 dotnet test --no-build
 ```
+
+Build the React dashboard:
+
+```powershell
+pnpm install --config.confirmModulesPurge=false
+pnpm --filter order-tracking-ui build
+```
+
+Run the dashboard locally:
+
+```powershell
+pnpm --filter order-tracking-ui dev
+```
+
+By default, Vite proxies `/api` and `/hubs` to `https://localhost:7247`. Set `VITE_API_BASE_URL` in `src/order-tracking-ui/.env.local` only when the API is hosted elsewhere.
 
 Create or update a local SQL Server database with:
 
@@ -35,6 +51,7 @@ dotnet ef database update `
 - `OrderTracking.Infrastructure`: EF Core and SQL Server adapters.
 - `OrderTracking.API`: HTTP composition and cross-cutting error handling.
 - `OrderTracking.UnitTests`: domain behavior tests.
+- `order-tracking-ui`: React dashboard built with Vite, SignalR, Leaflet and react-window.
 
 The default connection string is intended only for local development. Override it with `ConnectionStrings__OrderTracking` in real environments.
 
@@ -67,6 +84,6 @@ When Redis or RabbitMQ are disabled, the application uses no-op adapters so loca
 
 - `main`: stable releases.
 - `develop`: integration branch.
-- `phase/03-realtime-events`: current implementation branch.
+- `phase/04-react-dashboard`: current implementation branch.
 
 Each phase is validated and merged into `develop` before the next phase branch is created.

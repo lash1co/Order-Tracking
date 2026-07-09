@@ -9,3 +9,8 @@ coverage/
 .env
 .appdata/
 appsettings.Local.json
+node_modules/
+**/node_modules/
+.pnpm-store/
+dist/
+**/dist/

@@ -1,0 +1,9 @@
+{
+  "name": "Order Tracking Dashboard",
+  "short_name": "Tracking",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "description": "Real-time food delivery operations dashboard."
+}

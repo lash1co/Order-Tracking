@@ -44,6 +44,19 @@ SignalR lives in the API layer behind `ITrackingNotifier`, so Application remain
 
 Redis caches active-order pages for short intervals and invalidates by incrementing a version key. If Redis or RabbitMQ are disabled, no-op adapters keep the local development path fast and predictable.
 
+## Frontend dashboard
+
+The React app lives in `src/order-tracking-ui` and uses Vite with TypeScript. Client state is held in a reducer/context boundary to keep the phase lightweight while still modeling predictable state transitions.
+
+The dashboard follows a reconciliation-first realtime strategy:
+
+- initial load fetches the active order page through REST;
+- SignalR pushes order and driver deltas into the reducer;
+- reconnects call `reconnectAndSync`, which refreshes active orders before reopening the hub;
+- optimistic order status changes are rolled back and reconciled if the API rejects the update.
+
+Performance choices in this phase include `react-window` for the order feed, Vite manual chunks for vendor/realtime/map code, lazy browser image avoidance, skeleton empty states and compact DTO rendering.
+
 ## Simulation
 
 `DriverMovementSimulator` is a hosted service that periodically moves non-offline drivers by a small random delta, commits the new coordinates and broadcasts `driver.location.changed`. It is controlled by `DriverMovementSimulator` configuration and is meant for demos and load-test scenarios, not production dispatch logic.
@@ -51,6 +64,6 @@ Redis caches active-order pages for short intervals and invalidates by increment
 ## Decisions deferred to later phases
 
 - Transactional outbox and idempotent external consumers.
-- React dashboard.
+- Full React routing, auth provider integration and Playwright E2E flows.
 - Integration, E2E and load tests.
 - Containers, Kubernetes and observability stack.
