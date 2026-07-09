@@ -7,9 +7,8 @@ Phase 6 provides local container and Kubernetes-ready assets. Public certificate
 Build and run the full local stack:
 
 ```powershell
-$env:JWT_SIGNING_KEY = "local-development-signing-key-32-characters-minimum"
-$env:SQLSERVER_SA_PASSWORD = "Your_strong_password123!"
-docker compose up --build
+Copy-Item .env.example .env
+./scripts/deployment/compose-up.ps1 -Build
 ```
 
 Services:
@@ -21,6 +20,18 @@ Services:
 - RabbitMQ management: `http://localhost:15672`
 
 The API exposes `/health/live` and `/health/ready`.
+
+Stop the stack:
+
+```powershell
+./scripts/deployment/compose-down.ps1
+```
+
+Remove containers and database volumes:
+
+```powershell
+./scripts/deployment/compose-down.ps1 -RemoveVolumes
+```
 
 Database migrations are still explicit:
 
@@ -49,11 +60,20 @@ Apply the plain manifests:
 ./scripts/deployment/apply-k8s.ps1
 ```
 
+For kind, load locally built images into the cluster first:
+
+```powershell
+./scripts/deployment/build-images.ps1 -Tag local
+./scripts/deployment/load-kind-images.ps1 -ClusterName kind -Tag local
+```
+
 The manifests include namespace, ConfigMap, Secret placeholders, SQL Server, Redis, RabbitMQ, API/UI Deployments, Services, probes, HPA definitions and an nginx Ingress with local TLS placeholder.
 
 Before real cluster use, replace `order-tracking-secrets` values with a proper secret provider and provide a real TLS secret if ingress TLS is enabled.
 
 ## Helm
+
+Helm is free and optional. Use it when you want a Kubernetes package manager experience instead of applying plain YAML.
 
 Render locally:
 

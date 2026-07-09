@@ -1,17 +1,83 @@
 # Order Tracking System
 
-Real-time food-delivery tracking platform built with .NET 8 and React. The repository is developed incrementally, one phase per branch.
+Real-time food-delivery tracking platform built with .NET 8 and React. The repository is designed so reviewers can run it locally with Docker Compose, or inspect/deploy the Kubernetes assets when they want the advanced path.
 
-## Current phase
+## Status
 
-`phase/06-devops-readiness` adds Docker, Docker Compose, Kubernetes manifests, a Helm chart, deployment scripts, health probes and structured observability basics.
+The planned non-extra scope is complete on `develop`: backend, realtime, React dashboard, integration quality gates, Docker, Docker Compose, Kubernetes manifests, Helm chart, deployment scripts, health probes and structured observability basics.
+
+Explicitly excluded for now: WebRTC, ML.NET, React Native, public certificate automation and 24-hour continuous stress tests.
+
+## Choose your run mode
+
+### 1. Quick start: Docker Compose
+
+Recommended for most people reviewing the repository:
+
+```powershell
+Copy-Item .env.example .env
+./scripts/deployment/compose-up.ps1 -Build
+```
+
+Then open:
+
+- UI: `http://localhost:5173`
+- API health: `http://localhost:7247/health/live`
+- RabbitMQ management: `http://localhost:15672`
+
+Stop it with:
+
+```powershell
+./scripts/deployment/compose-down.ps1
+```
+
+To remove database volumes too:
+
+```powershell
+./scripts/deployment/compose-down.ps1 -RemoveVolumes
+```
+
+### 2. Developer mode
+
+Use this when changing code without containers:
+
+```powershell
+dotnet restore
+dotnet build --no-restore
+dotnet test --no-build
+pnpm install --config.confirmModulesPurge=false
+pnpm --filter order-tracking-ui dev
+```
+
+### 3. Kubernetes local or advanced review
+
+Use this if you have Docker Desktop Kubernetes, minikube, kind, k3d or Rancher Desktop:
+
+```powershell
+./scripts/deployment/build-images.ps1 -Tag local
+./scripts/deployment/apply-k8s.ps1
+```
+
+For kind clusters, load local images first:
+
+```powershell
+./scripts/deployment/load-kind-images.ps1 -ClusterName kind -Tag local
+```
+
+Helm is optional:
+
+```powershell
+helm upgrade --install order-tracking ./kubernetes/helm-chart `
+  --namespace order-tracking `
+  --create-namespace
+```
 
 ## Requirements
 
 - .NET SDK 8
 - Node.js 22+ and pnpm 11+
-- SQL Server (required when running migrations or the API against a database)
-- Redis and RabbitMQ are optional in this phase. They are disabled by default and can be enabled through configuration.
+- Docker Desktop or compatible Docker engine for the easiest full-stack run.
+- SQL Server, Redis and RabbitMQ only if running services outside Docker Compose.
 
 ## Build and test
 
@@ -28,7 +94,7 @@ pnpm install --config.confirmModulesPurge=false
 pnpm --filter order-tracking-ui build
 ```
 
-Run the dashboard locally:
+Run the dashboard locally in developer mode:
 
 ```powershell
 pnpm --filter order-tracking-ui dev
@@ -87,6 +153,6 @@ When Redis or RabbitMQ are disabled, the application uses no-op adapters so loca
 
 - `main`: stable releases.
 - `develop`: integration branch.
-- `phase/06-devops-readiness`: current implementation branch.
+- `phase/*`: completed implementation branches kept for traceability.
 
 Each phase is validated and merged into `develop` before the next phase branch is created.
