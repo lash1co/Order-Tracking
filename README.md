@@ -4,7 +4,7 @@ Real-time food-delivery tracking platform built with .NET 8 and React. The repos
 
 ## Current phase
 
-`phase/04-react-dashboard` adds the React operations dashboard with SignalR live updates, virtualized order feed, Leaflet driver map, KPI cards, optimistic status updates, toast notifications and PWA manifest.
+`phase/05-integration-quality` adds API integration smoke tests, Playwright E2E smoke coverage for the React dashboard and bounded k6 performance scripts.
 
 ## Requirements
 
@@ -36,6 +36,8 @@ pnpm --filter order-tracking-ui dev
 
 By default, Vite proxies `/api` and `/hubs` to `https://localhost:7247`. Set `VITE_API_BASE_URL` in `src/order-tracking-ui/.env.local` only when the API is hosted elsewhere.
 
+Quality gates and performance smoke scripts are documented in `docs/QUALITY.md`.
+
 Create or update a local SQL Server database with:
 
 ```powershell
@@ -51,6 +53,7 @@ dotnet ef database update `
 - `OrderTracking.Infrastructure`: EF Core and SQL Server adapters.
 - `OrderTracking.API`: HTTP composition and cross-cutting error handling.
 - `OrderTracking.UnitTests`: domain behavior tests.
+- `OrderTracking.IntegrationTests`: API smoke tests with `WebApplicationFactory`.
 - `order-tracking-ui`: React dashboard built with Vite, SignalR, Leaflet and react-window.
 
 The default connection string is intended only for local development. Override it with `ConnectionStrings__OrderTracking` in real environments.
@@ -84,6 +87,6 @@ When Redis or RabbitMQ are disabled, the application uses no-op adapters so loca
 
 - `main`: stable releases.
 - `develop`: integration branch.
-- `phase/04-react-dashboard`: current implementation branch.
+- `phase/05-integration-quality`: current implementation branch.
 
 Each phase is validated and merged into `develop` before the next phase branch is created.

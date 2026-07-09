@@ -14,3 +14,8 @@ node_modules/
 .pnpm-store/
 dist/
 **/dist/
+playwright-report/
+**/playwright-report/
+test-results/
+**/test-results/
+*.tsbuildinfo
