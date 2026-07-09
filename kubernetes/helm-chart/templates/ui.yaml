@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-tracking-ui
+  namespace: {{ include "order-tracking.namespace" . }}
+spec:
+  replicas: {{ .Values.ui.replicas }}
+  selector:
+    matchLabels:
+      app: order-tracking-ui
+  template:
+    metadata:
+      labels:
+        app: order-tracking-ui
+    spec:
+      containers:
+        - name: ui
+          image: "{{ .Values.ui.image.repository }}:{{ .Values.ui.image.tag }}"
+          imagePullPolicy: {{ .Values.ui.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+          resources:
+{{ toYaml .Values.ui.resources | indent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-tracking-ui
+  namespace: {{ include "order-tracking.namespace" . }}
+spec:
+  selector:
+    app: order-tracking-ui
+  ports:
+    - port: 8080
+      targetPort: 8080
+{{- if .Values.ui.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: order-tracking-ui
+  namespace: {{ include "order-tracking.namespace" . }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: order-tracking-ui
+  minReplicas: {{ .Values.ui.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.ui.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.ui.autoscaling.cpuUtilization }}
+{{- end }}

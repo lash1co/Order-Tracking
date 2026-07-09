@@ -1,0 +1,93 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: order-tracking-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${SQLSERVER_SA_PASSWORD:-Your_strong_password123!}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    container_name: order-tracking-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: order-tracking-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  order-tracking-api:
+    build:
+      context: .
+      dockerfile: src/OrderTracking.API/Dockerfile
+    image: order-tracking-api:local
+    container_name: order-tracking-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__OrderTracking: "Server=sqlserver,1433;Database=OrderTracking;User Id=sa;Password=${SQLSERVER_SA_PASSWORD:-Your_strong_password123!};TrustServerCertificate=True"
+      Jwt__Issuer: "OrderTracking.API"
+      Jwt__Audience: "OrderTracking.UI"
+      Jwt__SigningKey: "${JWT_SIGNING_KEY:-local-development-signing-key-32-characters-minimum}"
+      Redis__Enabled: "true"
+      Redis__Configuration: "redis:6379"
+      RabbitMQ__Enabled: "true"
+      RabbitMQ__HostName: "rabbitmq"
+      RabbitMQ__UserName: "guest"
+      RabbitMQ__Password: "guest"
+      DriverMovementSimulator__Enabled: "true"
+    ports:
+      - "7247:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  order-tracking-ui:
+    build:
+      context: .
+      dockerfile: src/order-tracking-ui/Dockerfile
+    image: order-tracking-ui:local
+    container_name: order-tracking-ui
+    ports:
+      - "5173:8080"
+    depends_on:
+      order-tracking-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  sqlserver-data:

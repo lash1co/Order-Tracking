@@ -4,7 +4,7 @@ Real-time food-delivery tracking platform built with .NET 8 and React. The repos
 
 ## Current phase
 
-`phase/05-integration-quality` adds API integration smoke tests, Playwright E2E smoke coverage for the React dashboard and bounded k6 performance scripts.
+`phase/06-devops-readiness` adds Docker, Docker Compose, Kubernetes manifests, a Helm chart, deployment scripts, health probes and structured observability basics.
 
 ## Requirements
 
@@ -36,7 +36,7 @@ pnpm --filter order-tracking-ui dev
 
 By default, Vite proxies `/api` and `/hubs` to `https://localhost:7247`. Set `VITE_API_BASE_URL` in `src/order-tracking-ui/.env.local` only when the API is hosted elsewhere.
 
-Quality gates and performance smoke scripts are documented in `docs/QUALITY.md`.
+Quality gates and performance smoke scripts are documented in `docs/QUALITY.md`. Deployment assets are documented in `docs/DEPLOYMENT.md`.
 
 Create or update a local SQL Server database with:
 
@@ -87,6 +87,6 @@ When Redis or RabbitMQ are disabled, the application uses no-op adapters so loca
 
 - `main`: stable releases.
 - `develop`: integration branch.
-- `phase/05-integration-quality`: current implementation branch.
+- `phase/06-devops-readiness`: current implementation branch.
 
 Each phase is validated and merged into `develop` before the next phase branch is created.

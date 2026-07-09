@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-tracking-config
+  namespace: {{ include "order-tracking.namespace" . }}
+data:
+  ASPNETCORE_ENVIRONMENT: {{ .Values.config.aspnetcoreEnvironment | quote }}
+  Jwt__Issuer: {{ .Values.config.jwtIssuer | quote }}
+  Jwt__Audience: {{ .Values.config.jwtAudience | quote }}
+  Redis__Enabled: {{ .Values.config.redisEnabled | quote }}
+  Redis__Configuration: {{ .Values.config.redisConfiguration | quote }}
+  RabbitMQ__Enabled: {{ .Values.config.rabbitMqEnabled | quote }}
+  RabbitMQ__HostName: {{ .Values.config.rabbitMqHostName | quote }}
+  RabbitMQ__UserName: {{ .Values.config.rabbitMqUserName | quote }}
+  DriverMovementSimulator__Enabled: {{ .Values.config.driverMovementSimulatorEnabled | quote }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: order-tracking-secrets
+  namespace: {{ include "order-tracking.namespace" . }}
+type: Opaque
+stringData:
+  Jwt__SigningKey: {{ .Values.secrets.jwtSigningKey | quote }}
+  RabbitMQ__Password: {{ .Values.secrets.rabbitMqPassword | quote }}
+  ConnectionStrings__OrderTracking: {{ .Values.secrets.sqlConnectionString | quote }}
+  MSSQL_SA_PASSWORD: {{ .Values.secrets.sqlSaPassword | quote }}

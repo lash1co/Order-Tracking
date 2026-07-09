@@ -2,8 +2,12 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using System.Threading.RateLimiting;
 using OrderTracking.API.Errors;
 using OrderTracking.API.Realtime;
@@ -19,8 +23,17 @@ using OrderTracking.Application.Orders.GetActiveOrders;
 using OrderTracking.Application.Orders.GetOrder;
 using OrderTracking.Application.Orders.UpdateOrderStatus;
 using OrderTracking.Infrastructure;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext();
+});
 
 builder.Services.AddControllers();
 builder.Services.AddResponseCompression(options =>
@@ -37,7 +50,26 @@ builder.Services.AddSignalR(options =>
 });
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live", "ready"]);
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService(
+        serviceName: builder.Configuration["OpenTelemetry:ServiceName"] ?? "order-tracking-api",
+        serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown"))
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation();
+
+    })
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation();
+    });
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<CreateOrderHandler>();
 builder.Services.AddScoped<AssignDriverHandler>();
@@ -137,7 +169,14 @@ app.UseAuthorization();
 
 app.MapControllers().RequireRateLimiting("api");
 app.MapHub<TrackingHub>("/hubs/tracking").RequireAuthorization();
-app.MapHealthChecks("/health/live");
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("live")
+});
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
 
 app.Run();
 

@@ -1,0 +1,14 @@
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/TestResults
+**/playwright-report
+**/test-results
+.git
+.agents
+.codex
+.appdata
+.pnpm-store
+*.user
+*.suo

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-tracking-config
+  namespace: order-tracking
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  Jwt__Issuer: "OrderTracking.API"
+  Jwt__Audience: "OrderTracking.UI"
+  Redis__Enabled: "true"
+  Redis__Configuration: "redis:6379"
+  RabbitMQ__Enabled: "true"
+  RabbitMQ__HostName: "rabbitmq"
+  RabbitMQ__UserName: "guest"
+  DriverMovementSimulator__Enabled: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: order-tracking-secrets
+  namespace: order-tracking
+type: Opaque
+stringData:
+  Jwt__SigningKey: "replace-with-secret-store-value-32-bytes-min"
+  RabbitMQ__Password: "guest"
+  ConnectionStrings__OrderTracking: "Server=sqlserver,1433;Database=OrderTracking;User Id=sa;Password=Your_strong_password123!;TrustServerCertificate=True"
+  MSSQL_SA_PASSWORD: "Your_strong_password123!"

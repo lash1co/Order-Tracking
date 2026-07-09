@@ -1,0 +1,65 @@
+namespaceOverride: ""
+
+api:
+  image:
+    repository: order-tracking-api
+    tag: local
+    pullPolicy: IfNotPresent
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    cpuUtilization: 70
+
+ui:
+  image:
+    repository: order-tracking-ui
+    tag: local
+    pullPolicy: IfNotPresent
+  replicas: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    cpuUtilization: 75
+
+config:
+  aspnetcoreEnvironment: Production
+  jwtIssuer: OrderTracking.API
+  jwtAudience: OrderTracking.UI
+  redisEnabled: "true"
+  redisConfiguration: redis:6379
+  rabbitMqEnabled: "true"
+  rabbitMqHostName: rabbitmq
+  rabbitMqUserName: guest
+  driverMovementSimulatorEnabled: "true"
+
+secrets:
+  jwtSigningKey: replace-with-secret-store-value-32-bytes-min
+  rabbitMqPassword: guest
+  sqlConnectionString: Server=sqlserver,1433;Database=OrderTracking;User Id=sa;Password=Your_strong_password123!;TrustServerCertificate=True
+  sqlSaPassword: Your_strong_password123!
+
+ingress:
+  enabled: true
+  className: nginx
+  host: order-tracking.local
+  tlsSecretName: order-tracking-local-tls
+
+dependencies:
+  enabled: true
