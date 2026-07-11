@@ -1,6 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0.101 AS restore
 WORKDIR /src
 COPY NuGet.Config ./
+COPY .editorconfig ./
 COPY Directory.Build.props ./
 COPY global.json ./
 COPY OrderTracking.sln ./
