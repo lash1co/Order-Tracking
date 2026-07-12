@@ -21,6 +21,14 @@ Services:
 
 The API exposes `/health/live` and `/health/ready`.
 
+The dashboard requires a bearer token because the API validates JWTs. For local tutorial usage, generate one with:
+
+```powershell
+./scripts/development/create-demo-token.ps1
+```
+
+Paste the token into the React dashboard: `Configurar conexión` > `Token bearer`.
+
 In Docker Compose, the API applies EF Core migrations automatically on startup through:
 
 ```text

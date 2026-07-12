@@ -25,6 +25,14 @@ Then open:
 - API health: `http://localhost:7247/health/live`
 - RabbitMQ management: `http://localhost:15672`
 
+Generate a demo JWT and paste it in the dashboard under `Configurar conexión`:
+
+```powershell
+./scripts/development/create-demo-token.ps1
+```
+
+This repository intentionally does not include a real identity provider. The script signs a local learning token with the same `JWT_SIGNING_KEY` used by Docker Compose.
+
 Stop it with:
 
 ```powershell
@@ -132,6 +140,14 @@ dotnet run --project src/OrderTracking.API
 ```
 
 Swagger UI is available at `/swagger` in Development. Token issuance is expected to be handled by an external identity provider; this API validates issuer, audience, signature and lifetime.
+
+For local learning/demo runs, generate a compatible JWT with:
+
+```powershell
+./scripts/development/create-demo-token.ps1
+```
+
+Paste the output token into the React dashboard connection panel. The generated token includes the tutorial roles `Admin`, `Dispatcher` and `Driver`.
 
 ## Real-time and eventing configuration
 
