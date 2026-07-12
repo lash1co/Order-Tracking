@@ -21,6 +21,12 @@ Services:
 
 The API exposes `/health/live` and `/health/ready`.
 
+In Docker Compose, the API applies EF Core migrations automatically on startup through:
+
+```text
+Database__ApplyMigrationsOnStartup=true
+```
+
 Stop the stack:
 
 ```powershell
@@ -33,7 +39,7 @@ Remove containers and database volumes:
 ./scripts/deployment/compose-down.ps1 -RemoveVolumes
 ```
 
-Database migrations are still explicit:
+Outside Docker Compose, database migrations are still explicit:
 
 ```powershell
 dotnet ef database update `

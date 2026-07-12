@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -23,6 +24,7 @@ using OrderTracking.Application.Orders.GetActiveOrders;
 using OrderTracking.Application.Orders.GetOrder;
 using OrderTracking.Application.Orders.UpdateOrderStatus;
 using OrderTracking.Infrastructure;
+using OrderTracking.Infrastructure.Persistence;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -177,6 +179,13 @@ app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.Health
 {
     Predicate = check => check.Tags.Contains("ready")
 });
+
+if (bool.TryParse(app.Configuration["Database:ApplyMigrationsOnStartup"], out var applyMigrations) && applyMigrations)
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<OrderTrackingDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 app.Run();
 

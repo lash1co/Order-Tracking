@@ -23,7 +23,11 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException("Connection string 'OrderTracking' is not configured.");
 
         services.AddDbContext<OrderTrackingDbContext>(options =>
-            options.UseSqlServer(connectionString, sql => sql.UseNetTopologySuite()));
+            options.UseSqlServer(connectionString, sql =>
+            {
+                sql.UseNetTopologySuite();
+                sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+            }));
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<OrderTrackingDbContext>());
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IDriverRepository, DriverRepository>();

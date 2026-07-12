@@ -56,6 +56,7 @@ services:
       RabbitMQ__HostName: "rabbitmq"
       RabbitMQ__UserName: "guest"
       RabbitMQ__Password: "guest"
+      Database__ApplyMigrationsOnStartup: "true"
       DriverMovementSimulator__Enabled: "true"
     ports:
       - "7247:8080"
