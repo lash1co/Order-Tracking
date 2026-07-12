@@ -33,6 +33,14 @@ Generate a demo JWT and paste it in the dashboard under `Configurar conexión`:
 
 This repository intentionally does not include a real identity provider. The script signs a local learning token with the same `JWT_SIGNING_KEY` used by Docker Compose.
 
+Create tutorial data through the API:
+
+```powershell
+./scripts/development/seed-demo-data.ps1
+```
+
+The seed script creates sample drivers, orders and assignments so the React dashboard immediately shows live order rows, KPIs and map updates.
+
 Stop it with:
 
 ```powershell
@@ -111,6 +119,7 @@ pnpm --filter order-tracking-ui dev
 By default, Vite proxies `/api` and `/hubs` to `https://localhost:7247`. Set `VITE_API_BASE_URL` in `src/order-tracking-ui/.env.local` only when the API is hosted elsewhere.
 
 Quality gates and performance smoke scripts are documented in `docs/QUALITY.md`. Deployment assets are documented in `docs/DEPLOYMENT.md`.
+The local end-to-end tutorial is documented in `docs/LOCAL_TESTING.md`, and role behavior is documented in `docs/ROLES_AND_PERMISSIONS.md`.
 
 Create or update a local SQL Server database with:
 
