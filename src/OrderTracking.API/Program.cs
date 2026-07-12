@@ -12,6 +12,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Threading.RateLimiting;
 using OrderTracking.API.Errors;
+using OrderTracking.API.DevTokens;
 using OrderTracking.API.Realtime;
 using OrderTracking.API.Simulation;
 using OrderTracking.Application.Abstractions.Realtime;
@@ -176,6 +177,37 @@ app.UseAuthorization();
 
 app.MapControllers().RequireRateLimiting("api");
 app.MapHub<TrackingHub>("/hubs/tracking").RequireAuthorization();
+
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("DemoTokens:Enabled"))
+{
+    app.MapPost("/api/v1/dev/tokens", (DemoTokenRequest request, IConfiguration configuration) =>
+    {
+        var allowedRoles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Admin",
+            "Dispatcher",
+            "Driver"
+        };
+        var requestedRoles = request.Roles ?? [];
+        var roles = requestedRoles
+            .Where(role => allowedRoles.Contains(role))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(role => allowedRoles.Single(allowed => allowed.Equals(role, StringComparison.OrdinalIgnoreCase)))
+            .ToArray();
+
+        if (roles.Length == 0)
+            return Results.BadRequest(new { error = "At least one valid role is required: Admin, Dispatcher or Driver." });
+
+        var expiresAt = DateTimeOffset.UtcNow.AddHours(Math.Clamp(request.ExpiresInHours ?? 8, 1, 24));
+        var token = DemoTokenFactory.Create(configuration, roles, request.Subject ?? "demo-user", expiresAt);
+        return Results.Ok(new DemoTokenResponse(token, roles, expiresAt));
+    })
+    .AllowAnonymous()
+    .RequireRateLimiting("api")
+    .WithName("CreateDemoToken")
+    .WithTags("Development");
+}
+
 app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
     Predicate = check => check.Tags.Contains("live")

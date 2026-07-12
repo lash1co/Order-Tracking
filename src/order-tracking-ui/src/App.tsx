@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ConnectionBanner } from './features/ConnectionBanner';
 import { DashboardMap } from './features/DashboardMap';
+import { DemoRolePanel } from './features/DemoRolePanel';
 import { KpiCards } from './features/KpiCards';
 import { OrderList } from './features/OrderList';
 import { ToastRegion } from './features/ToastRegion';
@@ -29,7 +30,12 @@ export function App() {
         </button>
       </section>
 
-      {showSettings && <TokenForm token={state.authToken} onSave={actions.setAuthToken} />}
+      {showSettings && (
+        <>
+          <DemoRolePanel onToken={actions.setAuthToken} />
+          <TokenForm token={state.authToken} onSave={actions.setAuthToken} />
+        </>
+      )}
 
       <ConnectionBanner connection={state.connection} onReconnect={actions.reconnectAndSync} />
       <KpiCards orders={state.orders} drivers={state.drivers} />

@@ -33,6 +33,8 @@ Generate a demo JWT and paste it in the dashboard under `Configurar conexión`:
 
 This repository intentionally does not include a real identity provider. The script signs a local learning token with the same `JWT_SIGNING_KEY` used by Docker Compose.
 
+Docker Compose also enables a local tutorial endpoint for the React dashboard, so you can click `Configurar conexión` and choose `Usar Admin`, `Usar Dispatcher` or `Usar Driver` without manually pasting a JWT.
+
 Create tutorial data through the API:
 
 ```powershell

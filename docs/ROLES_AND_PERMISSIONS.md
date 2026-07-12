@@ -4,7 +4,15 @@ The project uses JWT bearer authentication. A production system would normally i
 
 ## Demo tokens
 
-Generate a token with all tutorial roles:
+In Docker Compose, the React dashboard can request demo tokens from:
+
+```text
+POST /api/v1/dev/tokens
+```
+
+This endpoint is controlled by `DemoTokens:Enabled`. It is enabled in local Docker Compose and disabled by default in `appsettings.json`.
+
+You can also generate a token with all tutorial roles from PowerShell:
 
 ```powershell
 ./scripts/development/create-demo-token.ps1
@@ -74,4 +82,3 @@ The expected result is:
 ```text
 403 Forbidden
 ```
-

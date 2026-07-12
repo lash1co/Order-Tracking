@@ -44,7 +44,18 @@ It creates:
 - additional pending orders;
 - active driver assignments.
 
-## 3. Generate a token for the UI
+## 3. Choose a demo role in the UI
+
+The Docker Compose profile enables a local tutorial endpoint that creates short-lived JWTs for the React dashboard.
+
+1. Open `http://localhost:5173`.
+2. Click `Configurar conexión`.
+3. Choose `Usar Admin`, `Usar Dispatcher` or `Usar Driver`.
+4. The dashboard will save the generated token and reconnect automatically.
+
+Use this path when you want the simplest learning flow.
+
+## 4. Generate a token manually
 
 Use a full-access learning token:
 
@@ -61,7 +72,7 @@ Then:
 
 The order list, KPIs and map should start showing live data.
 
-## 4. Try each role
+## 5. Try each role
 
 Generate role-specific tokens:
 
@@ -76,10 +87,11 @@ Paste each token in the UI connection panel and try the dashboard again.
 Current UI support:
 
 - all roles can load the dashboard and connect to SignalR;
+- the role cards can request a local demo token when `DemoTokens:Enabled` is true;
 - `Admin`, `Dispatcher` and `Driver` can advance order statuses from the list;
 - creation of orders, creation of drivers and driver assignment are currently tested through the API or seed script.
 
-## 5. Real-time browser test
+## 6. Real-time browser test
 
 1. Open the dashboard in two browser tabs.
 2. Paste the same valid token in both tabs.
@@ -88,7 +100,7 @@ Current UI support:
 
 You can also restart the API container and observe the connection banner moving through disconnected/reconnecting states before syncing again.
 
-## 6. API role examples
+## 7. API role examples
 
 Use Swagger or any REST client with the bearer token.
 
@@ -115,7 +127,7 @@ PATCH /api/v1/orders/{orderId}/status
 Authorization: Bearer <driver-token>
 ```
 
-## 7. What this tutorial proves
+## 8. What this tutorial proves
 
 - Clean Architecture flow from controller to application handler to EF Core repository.
 - JWT authentication and role authorization.
@@ -130,7 +142,7 @@ Authorization: Bearer <driver-token>
 
 ### The UI shows 401
 
-Generate a fresh token and paste it again:
+Click `Configurar conexión` and choose a demo role again. Or generate a fresh token manually and paste it:
 
 ```powershell
 ./scripts/development/create-demo-token.ps1
@@ -171,4 +183,3 @@ The seed script intentionally creates new records each time so it is safe for de
 ./scripts/deployment/compose-up.ps1 -Build
 ./scripts/development/seed-demo-data.ps1
 ```
-

@@ -2,6 +2,24 @@ import type { Order, OrderStatus } from '../domain/types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
 
+export type DemoTokenResponse = {
+  token: string;
+  roles: string[];
+  expiresAt: string;
+};
+
+export async function createDemoToken(roles: string[], subject: string, signal?: AbortSignal): Promise<DemoTokenResponse> {
+  const response = await fetch(`${apiBaseUrl}/api/v1/dev/tokens`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ roles, subject, expiresInHours: 8 }),
+    signal
+  });
+  return readJson<DemoTokenResponse>(response);
+}
+
 export async function getActiveOrders(token: string | null, signal?: AbortSignal): Promise<Order[]> {
   const response = await fetch(`${apiBaseUrl}/api/v1/orders/active?page=1&pageSize=100`, {
     headers: buildHeaders(token),
