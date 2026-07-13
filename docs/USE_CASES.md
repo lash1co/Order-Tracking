@@ -68,6 +68,10 @@ Steps:
 6. Click `Buscar drivers cercanos`.
 7. Pick a nearby driver and click `Asignar`.
 
+Alternative path:
+
+- If nearby search returns no candidates, choose an available driver in `Asignación manual` and click `Asignar driver visible`.
+
 Expected result:
 
 - the driver changes to `Assigned`;

@@ -492,6 +492,38 @@ button:disabled {
   padding: 0 1.25rem 1.25rem;
 }
 
+.manual-assignment {
+  align-items: end;
+  background: rgba(2, 6, 23, 0.28);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1.25rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  margin: 0 1.25rem 1.25rem;
+  padding: 1rem;
+}
+
+.manual-assignment label {
+  color: #cbd5e1;
+  display: grid;
+  gap: 0.5rem;
+  font-weight: 800;
+}
+
+.manual-assignment select {
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 1rem;
+  color: #e2e8f0;
+  padding: 0.8rem;
+}
+
+.manual-assignment select option {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
 .items-editor {
   background: rgba(2, 6, 23, 0.28);
   border: 1px solid rgba(148, 163, 184, 0.14);
@@ -728,6 +760,7 @@ button:disabled {
 @media (max-width: 1060px) {
   .dashboard-grid,
   .driver-admin-grid,
+  .manual-assignment,
   .auth-summary-grid,
   .permission-grid,
   .metrics-grid,
@@ -753,6 +786,7 @@ button:disabled {
   .connection-banner,
   .dashboard-grid,
   .driver-admin-grid,
+  .manual-assignment,
   .auth-summary-grid,
   .permission-grid,
   .metrics-grid,

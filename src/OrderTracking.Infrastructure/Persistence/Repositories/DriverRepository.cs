@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using NetTopologySuite.Geometries;
 using OrderTracking.Application.Abstractions.Persistence;
 using OrderTracking.Domain.Drivers;
 
@@ -20,17 +19,19 @@ internal sealed class DriverRepository(OrderTrackingDbContext dbContext) : IDriv
         int take,
         CancellationToken cancellationToken)
     {
-        var searchPoint = new Point(longitude, latitude) { SRID = 4326 };
-        return await dbContext.Drivers
+        var availableDrivers = await dbContext.Drivers
             .AsNoTracking()
             .Where(driver => driver.Status == DriverStatus.Available)
+            .ToListAsync(cancellationToken);
+
+        return availableDrivers
             .Select(driver => new DriverDistance(
                 driver,
-                EF.Property<Point>(driver, "Location").Distance(searchPoint)))
+                CalculateDistanceMeters(latitude, longitude, driver.CurrentLocation.Latitude, driver.CurrentLocation.Longitude)))
             .Where(item => item.DistanceMeters <= radiusMeters)
             .OrderBy(item => item.DistanceMeters)
             .Take(take)
-            .ToListAsync(cancellationToken);
+            .ToArray();
     }
 
     public async Task<IReadOnlyList<Driver>> GetForLocationSimulationAsync(int take, CancellationToken cancellationToken) =>
@@ -39,4 +40,21 @@ internal sealed class DriverRepository(OrderTrackingDbContext dbContext) : IDriv
             .OrderBy(driver => driver.Id)
             .Take(take)
             .ToListAsync(cancellationToken);
+
+    private static double CalculateDistanceMeters(double originLatitude, double originLongitude, double targetLatitude, double targetLongitude)
+    {
+        const double earthRadiusMeters = 6_371_000;
+        var originLatRadians = ToRadians(originLatitude);
+        var targetLatRadians = ToRadians(targetLatitude);
+        var deltaLat = ToRadians(targetLatitude - originLatitude);
+        var deltaLon = ToRadians(targetLongitude - originLongitude);
+
+        var haversine = Math.Sin(deltaLat / 2) * Math.Sin(deltaLat / 2) +
+                        Math.Cos(originLatRadians) * Math.Cos(targetLatRadians) *
+                        Math.Sin(deltaLon / 2) * Math.Sin(deltaLon / 2);
+        var angularDistance = 2 * Math.Atan2(Math.Sqrt(haversine), Math.Sqrt(1 - haversine));
+        return earthRadiusMeters * angularDistance;
+    }
+
+    private static double ToRadians(double degrees) => degrees * Math.PI / 180;
 }

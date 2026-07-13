@@ -185,6 +185,8 @@ Expected result:
 - when the order reaches `OutForDelivery`, the driver changes to `Delivering`;
 - when the order reaches `Delivered`, the assignment is completed and the driver becomes `Available` again.
 
+If the nearby search does not return candidates, use `Asignación manual` in the same panel and click `Asignar driver visible`. This uses the currently visible `Available` drivers from the dashboard state.
+
 Permission check:
 
 1. Choose `Usar Driver`.
