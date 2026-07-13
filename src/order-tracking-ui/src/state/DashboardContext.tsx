@@ -1,6 +1,15 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef } from 'react';
 import type { ConnectionStatus, DriverLocation, Order, OrderStatus, Toast } from '../domain/types';
-import { ApiError, createOrder, getActiveOrders, updateOrderStatus, type CreateOrderRequest } from '../services/apiClient';
+import {
+  ApiError,
+  createDriver,
+  createOrder,
+  getActiveOrders,
+  updateDriverLocation,
+  updateOrderStatus,
+  type CreateDriverRequest,
+  type CreateOrderRequest
+} from '../services/apiClient';
 import { TrackingHubClient } from '../services/trackingHub';
 
 type DashboardState = {
@@ -20,6 +29,8 @@ type DashboardActions = {
   setAuthToken(token: string | null): void;
   reconnectAndSync(): Promise<void>;
   createOrder(request: CreateOrderRequest): Promise<void>;
+  createDriver(request: CreateDriverRequest): Promise<void>;
+  updateDriverLocation(driver: DriverLocation, latitude: number, longitude: number): Promise<void>;
   optimisticStatusUpdate(order: Order, status: OrderStatus): Promise<void>;
   dismissToast(id: string): void;
 };
@@ -100,6 +111,26 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           await syncOrders();
         } catch (error) {
           dispatch({ type: 'toast.add', toast: createToast('error', friendlyApiMessage(error, 'No se pudo crear la orden.')) });
+          throw error;
+        }
+      },
+      async createDriver(request) {
+        try {
+          const saved = await createDriver(request, stateRef.current.authToken);
+          dispatch({ type: 'driver.changed', driver: saved });
+          dispatch({ type: 'toast.add', toast: createToast('success', `Driver ${saved.name} creado`) });
+        } catch (error) {
+          dispatch({ type: 'toast.add', toast: createToast('error', friendlyApiMessage(error, 'No se pudo crear el driver.')) });
+          throw error;
+        }
+      },
+      async updateDriverLocation(driver, latitude, longitude) {
+        try {
+          const saved = await updateDriverLocation(driver, latitude, longitude, stateRef.current.authToken);
+          dispatch({ type: 'driver.changed', driver: saved });
+          dispatch({ type: 'toast.add', toast: createToast('success', `Ubicación de ${saved.name} actualizada`) });
+        } catch (error) {
+          dispatch({ type: 'toast.add', toast: createToast('error', friendlyApiMessage(error, 'No se pudo actualizar la ubicación.')) });
           throw error;
         }
       },

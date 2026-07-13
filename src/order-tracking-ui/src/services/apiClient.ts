@@ -1,4 +1,4 @@
-import type { Order, OrderStatus } from '../domain/types';
+import type { DriverLocation, Order, OrderStatus } from '../domain/types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
 
@@ -50,6 +50,71 @@ export type CreateOrderRequest = {
   estimatedDelivery: string;
   items: CreateOrderItemRequest[];
 };
+
+export type VehicleType = 'Bicycle' | 'Motorcycle' | 'Car';
+
+export type CreateDriverRequest = {
+  name: string;
+  vehicleType: VehicleType;
+  latitude: number;
+  longitude: number;
+};
+
+export type CreateDriverResponse = {
+  id: string;
+};
+
+export async function createDriver(request: CreateDriverRequest, token: string | null, signal?: AbortSignal): Promise<DriverLocation> {
+  const response = await fetch(`${apiBaseUrl}/api/v1/drivers`, {
+    method: 'POST',
+    headers: {
+      ...buildHeaders(token),
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(request),
+    signal
+  });
+  const created = await readJson<CreateDriverResponse>(response);
+  return {
+    driverId: created.id,
+    name: request.name,
+    vehicleType: request.vehicleType,
+    status: 'Available',
+    latitude: request.latitude,
+    longitude: request.longitude,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+export async function updateDriverLocation(
+  driver: DriverLocation,
+  latitude: number,
+  longitude: number,
+  token: string | null,
+  signal?: AbortSignal
+): Promise<DriverLocation> {
+  const response = await fetch(`${apiBaseUrl}/api/v1/drivers/${driver.driverId}/location`, {
+    method: 'PATCH',
+    headers: {
+      ...buildHeaders(token),
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ latitude, longitude }),
+    signal
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new ApiError(response.status, body || `Request failed with ${response.status}`);
+  }
+
+  return {
+    ...driver,
+    latitude,
+    longitude,
+    updatedAt: new Date().toISOString()
+  };
+}
 
 export async function createOrder(request: CreateOrderRequest, token: string | null, signal?: AbortSignal): Promise<Order> {
   const response = await fetch(`${apiBaseUrl}/api/v1/orders`, {

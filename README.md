@@ -45,6 +45,8 @@ The seed script creates sample drivers, orders and assignments so the React dash
 
 The dashboard also includes a `Crear orden` panel. Use `Usar Admin` or `Usar Dispatcher` in the demo role panel to create orders from the UI; use `Usar Driver` to demonstrate the expected `403 Forbidden` permission path.
 
+The `Administrar drivers` panel lets `Admin` or `Dispatcher` create drivers and lets `Admin` or `Driver` update driver locations. The map and visible driver list update as location events arrive.
+
 Stop it with:
 
 ```powershell

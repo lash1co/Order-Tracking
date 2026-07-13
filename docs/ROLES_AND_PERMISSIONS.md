@@ -79,6 +79,8 @@ To prove authorization is working from the UI:
 
 The expected result is a permission error and no new order.
 
+You can also choose `Usar Dispatcher` and try to update a driver location from `Administrar drivers`. The expected result is also `403 Forbidden`, because only `Admin` and `Driver` can update locations.
+
 You can also call an Admin/Dispatcher-only endpoint such as:
 
 ```http

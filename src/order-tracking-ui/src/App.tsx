@@ -3,6 +3,7 @@ import { ConnectionBanner } from './features/ConnectionBanner';
 import { CreateOrderPanel } from './features/CreateOrderPanel';
 import { DashboardMap } from './features/DashboardMap';
 import { DemoRolePanel } from './features/DemoRolePanel';
+import { DriverAdminPanel } from './features/DriverAdminPanel';
 import { KpiCards } from './features/KpiCards';
 import { OrderList } from './features/OrderList';
 import { ToastRegion } from './features/ToastRegion';
@@ -40,6 +41,7 @@ export function App() {
 
       <ConnectionBanner connection={state.connection} onReconnect={actions.reconnectAndSync} />
       <CreateOrderPanel onCreate={actions.createOrder} />
+      <DriverAdminPanel drivers={state.drivers} onCreate={actions.createDriver} onUpdateLocation={actions.updateDriverLocation} />
       <KpiCards orders={state.orders} drivers={state.drivers} />
 
       <section className="dashboard-grid">

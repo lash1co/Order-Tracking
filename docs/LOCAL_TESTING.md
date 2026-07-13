@@ -89,8 +89,10 @@ Current UI support:
 - all roles can load the dashboard and connect to SignalR;
 - the role cards can request a local demo token when `DemoTokens:Enabled` is true;
 - `Admin` and `Dispatcher` can create orders from the dashboard;
+- `Admin` and `Dispatcher` can create drivers from the dashboard;
+- `Admin` and `Driver` can update driver locations from the dashboard;
 - `Admin`, `Dispatcher` and `Driver` can advance order statuses from the list;
-- creation of drivers and driver assignment are currently tested through the API or seed script.
+- driver assignment is currently tested through the API or seed script.
 
 ## 6. Create an order from the UI
 
@@ -117,16 +119,53 @@ Expected result:
 - the UI shows a permission-related toast;
 - no order is created.
 
-## 7. Real-time browser test
+## 7. Create and move drivers from the UI
+
+Create a driver:
+
+1. Click `Configurar conexión`.
+2. Choose `Usar Admin` or `Usar Dispatcher`.
+3. In `Administrar drivers`, fill name, vehicle and coordinates.
+4. Click `Crear driver`.
+
+Expected result:
+
+- the new driver appears in the visible drivers list;
+- the driver appears on the map;
+- the driver movement simulator may start moving it after a few seconds.
+
+Update location:
+
+1. Choose `Usar Admin` or `Usar Driver`.
+2. Select a visible driver in `Actualizar ubicación`.
+3. Enter new latitude/longitude.
+4. Click `Actualizar ubicación`.
+
+Expected result:
+
+- the map marker moves;
+- another browser tab receives the driver location update through SignalR.
+
+Permission check:
+
+1. Choose `Usar Dispatcher`.
+2. Try `Actualizar ubicación`.
+
+Expected result:
+
+- the API rejects the request with `403 Forbidden`;
+- the UI shows a permission-related toast.
+
+## 8. Real-time browser test
 
 1. Open the dashboard in two browser tabs.
 2. Paste the same valid token in both tabs.
-3. Create an order or advance an order status in tab A.
+3. Create an order, create a driver, move a driver or advance an order status in tab A.
 4. Watch tab B receive the update without refreshing.
 
 You can also restart the API container and observe the connection banner moving through disconnected/reconnecting states before syncing again.
 
-## 8. API role examples
+## 9. API role examples
 
 Use Swagger or any REST client with the bearer token.
 
@@ -153,11 +192,12 @@ PATCH /api/v1/orders/{orderId}/status
 Authorization: Bearer <driver-token>
 ```
 
-## 9. What this tutorial proves
+## 10. What this tutorial proves
 
 - Clean Architecture flow from controller to application handler to EF Core repository.
 - JWT authentication and role authorization.
 - Command execution from React forms.
+- Driver location updates from React to SignalR.
 - Optimistic concurrency through order row versions.
 - Real-time updates with SignalR and reconnect/sync behavior.
 - Driver movement simulation.
