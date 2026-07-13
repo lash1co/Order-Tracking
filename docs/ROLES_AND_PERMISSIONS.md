@@ -42,6 +42,17 @@ Generate role-specific tokens:
 
 Driver performance is read-only. The delivered-count metric increases when an assigned order reaches `Delivered`, because the active assignment is completed and the driver is released back to `Available`.
 
+## UI permission feedback
+
+The React dashboard includes a `Sesión actual` panel. It decodes the JWT payload locally to show the subject, active roles, expiration and a tutorial permission matrix.
+
+This does not replace backend authorization. It only explains what should happen before the user clicks a button. The protected API endpoints still enforce roles and return:
+
+- `401 Unauthorized` when the token is missing, invalid or expired;
+- `403 Forbidden` when the token is valid but the role is not allowed;
+- `409 Conflict` when an order/driver assignment or optimistic version is no longer valid;
+- `429 Too Many Requests` when the local rate limit is exceeded.
+
 ## Tutorial scenarios
 
 ### Admin

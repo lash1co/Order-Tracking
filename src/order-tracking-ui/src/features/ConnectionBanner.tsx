@@ -24,7 +24,7 @@ export function ConnectionBanner({ connection, onReconnect }: Props) {
               }).format(new Date(connection.lastSyncAt))}`
             : 'Sin sincronización completa todavía'}
         </span>
-        {connection.error && <small>{connection.error}</small>}
+        {connection.error && <small>{friendlyConnectionError(connection.error)}</small>}
       </div>
       <button type="button" onClick={() => void onReconnect()}>
         Reconciliar ahora
@@ -41,4 +41,15 @@ function labelFor(status: ConnectionStatus) {
     disconnected: 'Desconectado'
   };
   return labels[status];
+}
+
+function friendlyConnectionError(error: string) {
+  const normalized = error.toLowerCase();
+  if (normalized.includes('401') || normalized.includes('unauthorized')) {
+    return 'No autorizado: el token falta, expiró o no coincide con la configuración local.';
+  }
+  if (normalized.includes('failed to fetch') || normalized.includes('network')) {
+    return 'No se pudo contactar la API. Verifica Docker Compose y el health endpoint.';
+  }
+  return error;
 }

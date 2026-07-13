@@ -1,7 +1,10 @@
 import { type FormEvent, useMemo, useState } from 'react';
+import type { AuthInfo } from '../domain/types';
 import type { CreateOrderRequest } from '../services/apiClient';
+import { hasAnyRole } from '../services/authToken';
 
 type Props = {
+  auth: AuthInfo;
   onCreate(request: CreateOrderRequest): Promise<void>;
 };
 
@@ -25,7 +28,7 @@ const newItem = (): DraftItem => ({
   price: '12.50'
 });
 
-export function CreateOrderPanel({ onCreate }: Props) {
+export function CreateOrderPanel({ auth, onCreate }: Props) {
   const [customerId, setCustomerId] = useState<string>(() => crypto.randomUUID());
   const [restaurantId, setRestaurantId] = useState<string>(() => crypto.randomUUID());
   const [estimatedDelivery, setEstimatedDelivery] = useState(defaultEta);
@@ -43,6 +46,7 @@ export function CreateOrderPanel({ onCreate }: Props) {
       }, 0),
     [items]
   );
+  const isExpectedAllowed = hasAnyRole(auth, ['Admin', 'Dispatcher']);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -95,6 +99,11 @@ export function CreateOrderPanel({ onCreate }: Props) {
       </div>
 
       <form className="entity-form" onSubmit={(event) => void submit(event)}>
+        {!isExpectedAllowed && (
+          <p className="permission-hint">
+            Rol actual sin permiso esperado para crear órdenes. Puedes intentarlo para ver el `403 Forbidden` del backend.
+          </p>
+        )}
         <div className="form-grid">
           <label>
             CustomerId

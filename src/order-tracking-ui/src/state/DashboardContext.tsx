@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef } from 'react';
-import type { ConnectionStatus, DriverLocation, Order, OrderStatus, Toast } from '../domain/types';
+import type { AuthInfo, ConnectionStatus, DriverLocation, Order, OrderStatus, Toast } from '../domain/types';
 import {
   ApiError,
   assignDriverToOrder,
@@ -15,10 +15,12 @@ import {
   type DriverPerformance,
   type NearbyDriver
 } from '../services/apiClient';
+import { decodeAuthInfo } from '../services/authToken';
 import { TrackingHubClient } from '../services/trackingHub';
 
 type DashboardState = {
   authToken: string | null;
+  authInfo: AuthInfo;
   orders: Order[];
   drivers: DriverLocation[];
   connection: {
@@ -61,6 +63,7 @@ const DashboardContext = createContext<DashboardContextValue | null>(null);
 
 const initialState: DashboardState = {
   authToken: localStorage.getItem('orderTracking.authToken'),
+  authInfo: decodeAuthInfo(localStorage.getItem('orderTracking.authToken')),
   orders: [],
   drivers: [],
   connection: { status: 'disconnected' },
@@ -227,7 +230,7 @@ export function useDashboard() {
 function reducer(state: DashboardState, action: Action): DashboardState {
   switch (action.type) {
     case 'token.set':
-      return { ...state, authToken: action.token };
+      return { ...state, authToken: action.token, authInfo: decodeAuthInfo(action.token) };
     case 'orders.synced':
       return { ...state, orders: action.orders, connection: { ...state.connection, lastSyncAt: action.syncedAt } };
     case 'order.changed':

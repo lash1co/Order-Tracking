@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { AssignmentPanel } from './features/AssignmentPanel';
+import { AuthStatusPanel } from './features/AuthStatusPanel';
 import { ConnectionBanner } from './features/ConnectionBanner';
 import { CreateOrderPanel } from './features/CreateOrderPanel';
 import { DashboardMap } from './features/DashboardMap';
@@ -37,14 +38,21 @@ export function App() {
       {showSettings && (
         <>
           <DemoRolePanel onToken={actions.setAuthToken} />
+          <AuthStatusPanel auth={state.authInfo} />
           <TokenForm token={state.authToken} onSave={actions.setAuthToken} />
         </>
       )}
 
       <ConnectionBanner connection={state.connection} onReconnect={actions.reconnectAndSync} />
-      <CreateOrderPanel onCreate={actions.createOrder} />
-      <DriverAdminPanel drivers={state.drivers} onCreate={actions.createDriver} onUpdateLocation={actions.updateDriverLocation} />
+      <CreateOrderPanel auth={state.authInfo} onCreate={actions.createOrder} />
+      <DriverAdminPanel
+        auth={state.authInfo}
+        drivers={state.drivers}
+        onCreate={actions.createDriver}
+        onUpdateLocation={actions.updateDriverLocation}
+      />
       <AssignmentPanel
+        auth={state.authInfo}
         orders={state.orders}
         drivers={state.drivers}
         onFindNearby={actions.findNearbyDrivers}

@@ -1,8 +1,10 @@
 import { type FormEvent, useMemo, useState } from 'react';
-import type { DriverLocation } from '../domain/types';
+import type { AuthInfo, DriverLocation } from '../domain/types';
 import type { CreateDriverRequest, VehicleType } from '../services/apiClient';
+import { hasAnyRole } from '../services/authToken';
 
 type Props = {
+  auth: AuthInfo;
   drivers: DriverLocation[];
   onCreate(request: CreateDriverRequest): Promise<void>;
   onUpdateLocation(driver: DriverLocation, latitude: number, longitude: number): Promise<void>;
@@ -15,7 +17,7 @@ const bogotaCenter = {
   longitude: -74.0721
 };
 
-export function DriverAdminPanel({ drivers, onCreate, onUpdateLocation }: Props) {
+export function DriverAdminPanel({ auth, drivers, onCreate, onUpdateLocation }: Props) {
   const [name, setName] = useState('Demo Driver');
   const [vehicleType, setVehicleType] = useState<VehicleType>('Motorcycle');
   const [latitude, setLatitude] = useState(bogotaCenter.latitude.toString());
@@ -32,6 +34,8 @@ export function DriverAdminPanel({ drivers, onCreate, onUpdateLocation }: Props)
     [drivers]
   );
   const selectedDriver = sortedDrivers.find((driver) => driver.driverId === selectedDriverId) ?? sortedDrivers[0];
+  const canCreateByRole = hasAnyRole(auth, ['Admin', 'Dispatcher']);
+  const canUpdateByRole = hasAnyRole(auth, ['Admin', 'Driver']);
 
   async function submitCreate(event: FormEvent) {
     event.preventDefault();
@@ -106,6 +110,7 @@ export function DriverAdminPanel({ drivers, onCreate, onUpdateLocation }: Props)
       <div className="driver-admin-grid">
         <form className="entity-form compact-form" onSubmit={(event) => void submitCreate(event)}>
           <h3>Crear driver</h3>
+          {!canCreateByRole && <p className="permission-hint">Crear drivers requiere Admin o Dispatcher. Inténtalo para ver el `403` real.</p>}
           <label>
             Nombre
             <input value={name} onChange={(event) => setName(event.target.value)} />
@@ -137,6 +142,7 @@ export function DriverAdminPanel({ drivers, onCreate, onUpdateLocation }: Props)
 
         <form className="entity-form compact-form" onSubmit={(event) => void submitLocation(event)}>
           <h3>Actualizar ubicación</h3>
+          {!canUpdateByRole && <p className="permission-hint">Actualizar ubicación requiere Admin o Driver. Inténtalo para ver el `403` real.</p>}
           <label>
             Driver visible
             <select

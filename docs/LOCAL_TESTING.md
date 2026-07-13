@@ -94,6 +94,15 @@ Current UI support:
 - `Admin` and `Driver` can update driver locations from the dashboard;
 - `Admin`, `Dispatcher` and `Driver` can advance order statuses from the list;
 
+The `Sesión actual` panel decodes the JWT in the browser and shows:
+
+- subject/user;
+- active roles;
+- token expiration;
+- permission matrix for the tutorial actions.
+
+This panel is educational only. The API remains the source of truth and still returns `401`, `403`, `409` or `429` when a request is invalid.
+
 ## 6. Create an order from the UI
 
 1. Click `Configurar conexión`.
@@ -195,7 +204,52 @@ Expected result:
 
 - the API rejects the request with `409 Conflict`.
 
-## 9. Real-time browser test
+## 9. Test educational errors
+
+### 401 Unauthorized
+
+1. Click `Configurar conexión`.
+2. Click `Limpiar`.
+3. Try to reconcile or execute a protected command.
+
+Expected result:
+
+- the connection banner explains that the token is missing or invalid;
+- the command toast explains the authorization problem.
+
+### 403 Forbidden
+
+1. Choose `Usar Driver`.
+2. Try to create an order or assign a driver.
+
+Expected result:
+
+- the `Sesión actual` panel shows that the active role is `Driver`;
+- the command panel warns that the role is not expected to have permission;
+- the backend returns `403 Forbidden`;
+- the UI shows a permission-related toast.
+
+### 409 Conflict
+
+1. Assign a driver to an order.
+2. Try assigning the same order or same driver again.
+
+Expected result:
+
+- the backend returns `409 Conflict`;
+- the UI explains that there is a data conflict and suggests syncing/retrying.
+
+### Expired token
+
+Generate a short-lived token manually:
+
+```powershell
+./scripts/development/create-demo-token.ps1 -Roles Admin -ExpiresInHours 1
+```
+
+After it expires, the `Sesión actual` panel will show `Token expirado` and protected calls should fail.
+
+## 10. Real-time browser test
 
 1. Open the dashboard in two browser tabs.
 2. Paste the same valid token in both tabs.
@@ -204,7 +258,7 @@ Expected result:
 
 You can also restart the API container and observe the connection banner moving through disconnected/reconnecting states before syncing again.
 
-## 10. Check operational metrics
+## 11. Check operational metrics
 
 1. Create or seed demo data.
 2. Assign a driver to an order.
@@ -221,7 +275,7 @@ Expected result:
 
 Note: active order queries normally focus on operational orders, so delivered orders may disappear from the live order list after synchronization. The performance endpoint reads assignment history from the database.
 
-## 11. API role examples
+## 12. API role examples
 
 Use Swagger or any REST client with the bearer token.
 
@@ -257,10 +311,12 @@ Authorization: Bearer <admin-or-dispatcher-token>
 
 Driver cannot assign drivers. The expected result is `403 Forbidden`.
 
-## 12. What this tutorial proves
+## 13. What this tutorial proves
 
 - Clean Architecture flow from controller to application handler to EF Core repository.
 - JWT authentication and role authorization.
+- Browser-side JWT inspection for tutorial feedback.
+- Clear handling for `401`, `403`, `409` and connection errors.
 - Command execution from React forms.
 - Geospatial nearby-driver queries.
 - Driver assignment conflict prevention.

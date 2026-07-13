@@ -31,6 +31,16 @@ export type DriverLocation = {
 
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting';
 
+export type UserRole = 'Admin' | 'Dispatcher' | 'Driver';
+
+export type AuthInfo = {
+  subject?: string;
+  roles: UserRole[];
+  expiresAt?: string;
+  isExpired: boolean;
+  isValidToken: boolean;
+};
+
 export type Toast = {
   id: string;
   tone: 'info' | 'success' | 'warning' | 'error';

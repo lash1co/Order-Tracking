@@ -98,6 +98,7 @@ button:disabled {
 
 .hero-card p,
 .token-panel p,
+.auth-status-panel p,
 .create-order-panel p,
 .demo-role-panel p,
 .role-card p {
@@ -343,6 +344,10 @@ button:disabled {
   margin-bottom: 1rem;
 }
 
+.auth-status-panel {
+  margin-bottom: 1rem;
+}
+
 .demo-role-panel .panel-header {
   align-items: flex-start;
 }
@@ -374,6 +379,55 @@ button:disabled {
   gap: 0.35rem;
   margin: 0;
   padding-left: 1.15rem;
+}
+
+.auth-summary-grid,
+.permission-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 0 1.25rem 1.25rem;
+}
+
+.permission-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.auth-summary-card,
+.permission-card {
+  background: rgba(2, 6, 23, 0.32);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1.25rem;
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+}
+
+.auth-summary-card span,
+.auth-summary-card small,
+.permission-card span {
+  color: #94a3b8;
+}
+
+.auth-summary-card strong {
+  font-size: 1.2rem;
+}
+
+.permission-card.allowed {
+  border-color: rgba(34, 197, 94, 0.38);
+}
+
+.permission-card.denied {
+  border-color: rgba(249, 115, 22, 0.32);
+}
+
+.permission-hint {
+  background: rgba(249, 115, 22, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.28);
+  border-radius: 1rem;
+  color: #fed7aa !important;
+  margin: 0 !important;
+  padding: 0.85rem 1rem;
 }
 
 .inline-error {
@@ -580,6 +634,11 @@ button:disabled {
   color: #fdba74;
 }
 
+.ok-pill {
+  background: rgba(34, 197, 94, 0.14);
+  color: #86efac;
+}
+
 .driver-list,
 .nearby-driver-list {
   border-top: 1px solid rgba(148, 163, 184, 0.12);
@@ -669,6 +728,8 @@ button:disabled {
 @media (max-width: 1060px) {
   .dashboard-grid,
   .driver-admin-grid,
+  .auth-summary-grid,
+  .permission-grid,
   .metrics-grid,
   .kpi-grid,
   .form-grid,
@@ -692,6 +753,8 @@ button:disabled {
   .connection-banner,
   .dashboard-grid,
   .driver-admin-grid,
+  .auth-summary-grid,
+  .permission-grid,
   .metrics-grid,
   .kpi-grid,
   .form-grid,

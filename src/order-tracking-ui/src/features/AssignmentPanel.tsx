@@ -1,8 +1,10 @@
 import { type FormEvent, useMemo, useState } from 'react';
-import type { DriverLocation, Order } from '../domain/types';
+import type { AuthInfo, DriverLocation, Order } from '../domain/types';
 import type { NearbyDriver } from '../services/apiClient';
+import { hasAnyRole } from '../services/authToken';
 
 type Props = {
+  auth: AuthInfo;
   orders: Order[];
   drivers: DriverLocation[];
   onFindNearby(latitude: number, longitude: number, radiusMeters?: number): Promise<NearbyDriver[]>;
@@ -15,7 +17,7 @@ const defaultSearch = {
   radiusMeters: '5000'
 };
 
-export function AssignmentPanel({ orders, drivers, onFindNearby, onAssign }: Props) {
+export function AssignmentPanel({ auth, orders, drivers, onFindNearby, onAssign }: Props) {
   const assignableOrders = useMemo(
     () => orders.filter((order) => order.status === 'Pending' || order.status === 'Preparing'),
     [orders]
@@ -31,6 +33,7 @@ export function AssignmentPanel({ orders, drivers, onFindNearby, onAssign }: Pro
 
   const selectedOrder = assignableOrders.find((order) => order.id === orderId) ?? assignableOrders[0];
   const availableVisibleDrivers = drivers.filter((driver) => driver.status === 'Available').length;
+  const canAssignByRole = hasAnyRole(auth, ['Admin', 'Dispatcher']);
 
   async function search(event: FormEvent) {
     event.preventDefault();
@@ -89,6 +92,9 @@ export function AssignmentPanel({ orders, drivers, onFindNearby, onAssign }: Pro
       </div>
 
       <form className="entity-form assignment-form" onSubmit={(event) => void search(event)}>
+        {!canAssignByRole && (
+          <p className="permission-hint">Asignar drivers requiere Admin o Dispatcher. Puedes intentarlo para ver el `403` real.</p>
+        )}
         <div className="form-grid assignment-grid">
           <label>
             Orden
