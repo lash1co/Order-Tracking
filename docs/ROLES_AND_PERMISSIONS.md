@@ -81,6 +81,8 @@ The expected result is a permission error and no new order.
 
 You can also choose `Usar Dispatcher` and try to update a driver location from `Administrar drivers`. The expected result is also `403 Forbidden`, because only `Admin` and `Driver` can update locations.
 
+Finally, choose `Usar Driver` and try to assign a driver from `Asignar driver a orden`. The expected result is `403 Forbidden`, because assignment is an Admin/Dispatcher operation.
+
 You can also call an Admin/Dispatcher-only endpoint such as:
 
 ```http

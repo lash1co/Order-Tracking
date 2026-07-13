@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { AssignmentPanel } from './features/AssignmentPanel';
 import { ConnectionBanner } from './features/ConnectionBanner';
 import { CreateOrderPanel } from './features/CreateOrderPanel';
 import { DashboardMap } from './features/DashboardMap';
@@ -42,6 +43,12 @@ export function App() {
       <ConnectionBanner connection={state.connection} onReconnect={actions.reconnectAndSync} />
       <CreateOrderPanel onCreate={actions.createOrder} />
       <DriverAdminPanel drivers={state.drivers} onCreate={actions.createDriver} onUpdateLocation={actions.updateDriverLocation} />
+      <AssignmentPanel
+        orders={state.orders}
+        drivers={state.drivers}
+        onFindNearby={actions.findNearbyDrivers}
+        onAssign={actions.assignDriver}
+      />
       <KpiCards orders={state.orders} drivers={state.drivers} />
 
       <section className="dashboard-grid">

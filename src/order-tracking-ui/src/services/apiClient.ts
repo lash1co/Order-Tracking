@@ -64,6 +64,16 @@ export type CreateDriverResponse = {
   id: string;
 };
 
+export type NearbyDriver = {
+  id: string;
+  name: string;
+  vehicleType: VehicleType;
+  status: string;
+  latitude: number;
+  longitude: number;
+  distanceMeters: number;
+};
+
 export async function createDriver(request: CreateDriverRequest, token: string | null, signal?: AbortSignal): Promise<DriverLocation> {
   const response = await fetch(`${apiBaseUrl}/api/v1/drivers`, {
     method: 'POST',
@@ -114,6 +124,41 @@ export async function updateDriverLocation(
     longitude,
     updatedAt: new Date().toISOString()
   };
+}
+
+export async function getNearbyDrivers(
+  latitude: number,
+  longitude: number,
+  token: string | null,
+  radiusMeters = 5000,
+  take = 10,
+  signal?: AbortSignal
+): Promise<NearbyDriver[]> {
+  const parameters = new URLSearchParams({
+    latitude: latitude.toString(),
+    longitude: longitude.toString(),
+    radiusMeters: radiusMeters.toString(),
+    take: take.toString()
+  });
+  const response = await fetch(`${apiBaseUrl}/api/v1/drivers/nearby?${parameters.toString()}`, {
+    headers: buildHeaders(token),
+    signal
+  });
+  return readJson<NearbyDriver[]>(response);
+}
+
+export async function assignDriverToOrder(orderId: string, driverId: string, token: string | null, signal?: AbortSignal): Promise<string> {
+  const response = await fetch(`${apiBaseUrl}/api/v1/orders/${orderId}/assignments`, {
+    method: 'POST',
+    headers: {
+      ...buildHeaders(token),
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ driverId }),
+    signal
+  });
+  const result = await readJson<{ assignmentId: string }>(response);
+  return result.assignmentId;
 }
 
 export async function createOrder(request: CreateOrderRequest, token: string | null, signal?: AbortSignal): Promise<Order> {

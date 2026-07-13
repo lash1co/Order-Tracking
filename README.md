@@ -47,6 +47,8 @@ The dashboard also includes a `Crear orden` panel. Use `Usar Admin` or `Usar Dis
 
 The `Administrar drivers` panel lets `Admin` or `Dispatcher` create drivers and lets `Admin` or `Driver` update driver locations. The map and visible driver list update as location events arrive.
 
+The `Asignar driver a orden` panel demonstrates the geospatial query and dispatch flow: search available drivers near a coordinate, assign one to a pending/preparing order, then advance the order to `OutForDelivery`.
+
 Stop it with:
 
 ```powershell

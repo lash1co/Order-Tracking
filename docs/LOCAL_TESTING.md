@@ -90,9 +90,9 @@ Current UI support:
 - the role cards can request a local demo token when `DemoTokens:Enabled` is true;
 - `Admin` and `Dispatcher` can create orders from the dashboard;
 - `Admin` and `Dispatcher` can create drivers from the dashboard;
+- `Admin` and `Dispatcher` can assign available drivers to pending/preparing orders;
 - `Admin` and `Driver` can update driver locations from the dashboard;
 - `Admin`, `Dispatcher` and `Driver` can advance order statuses from the list;
-- driver assignment is currently tested through the API or seed script.
 
 ## 6. Create an order from the UI
 
@@ -156,16 +156,53 @@ Expected result:
 - the API rejects the request with `403 Forbidden`;
 - the UI shows a permission-related toast.
 
-## 8. Real-time browser test
+## 8. Assign a driver from the UI
+
+1. Click `Configurar conexión`.
+2. Choose `Usar Admin` or `Usar Dispatcher`.
+3. Make sure there is at least one `Pending` or `Preparing` order.
+4. Make sure there is at least one `Available` driver. You can create one from `Administrar drivers`.
+5. In `Asignar driver a orden`, choose the order.
+6. Use the default Bogotá coordinates or click `Usar coords <driver name>`.
+7. Click `Buscar drivers cercanos`.
+8. Click `Asignar` on one of the nearby drivers.
+
+Expected result:
+
+- a success toast appears;
+- the assigned driver changes from `Available` to `Assigned`;
+- the map/list updates through SignalR;
+- the order can now be advanced to `OutForDelivery` from the order list.
+
+Permission check:
+
+1. Choose `Usar Driver`.
+2. Try to assign a driver.
+
+Expected result:
+
+- the API rejects the request with `403 Forbidden`;
+- the UI shows a permission-related toast.
+
+Conflict check:
+
+1. Assign a driver to an order.
+2. Try assigning the same driver or the same order again.
+
+Expected result:
+
+- the API rejects the request with `409 Conflict`.
+
+## 9. Real-time browser test
 
 1. Open the dashboard in two browser tabs.
 2. Paste the same valid token in both tabs.
-3. Create an order, create a driver, move a driver or advance an order status in tab A.
+3. Create an order, create a driver, assign a driver, move a driver or advance an order status in tab A.
 4. Watch tab B receive the update without refreshing.
 
 You can also restart the API container and observe the connection banner moving through disconnected/reconnecting states before syncing again.
 
-## 9. API role examples
+## 10. API role examples
 
 Use Swagger or any REST client with the bearer token.
 
@@ -192,11 +229,22 @@ PATCH /api/v1/orders/{orderId}/status
 Authorization: Bearer <driver-token>
 ```
 
-## 10. What this tutorial proves
+Admin and Dispatcher can assign drivers:
+
+```http
+POST /api/v1/orders/{orderId}/assignments
+Authorization: Bearer <admin-or-dispatcher-token>
+```
+
+Driver cannot assign drivers. The expected result is `403 Forbidden`.
+
+## 11. What this tutorial proves
 
 - Clean Architecture flow from controller to application handler to EF Core repository.
 - JWT authentication and role authorization.
 - Command execution from React forms.
+- Geospatial nearby-driver queries.
+- Driver assignment conflict prevention.
 - Driver location updates from React to SignalR.
 - Optimistic concurrency through order row versions.
 - Real-time updates with SignalR and reconnect/sync behavior.

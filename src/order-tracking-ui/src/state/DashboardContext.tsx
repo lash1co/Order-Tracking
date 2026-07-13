@@ -2,13 +2,16 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import type { ConnectionStatus, DriverLocation, Order, OrderStatus, Toast } from '../domain/types';
 import {
   ApiError,
+  assignDriverToOrder,
   createDriver,
   createOrder,
+  getNearbyDrivers,
   getActiveOrders,
   updateDriverLocation,
   updateOrderStatus,
   type CreateDriverRequest,
-  type CreateOrderRequest
+  type CreateOrderRequest,
+  type NearbyDriver
 } from '../services/apiClient';
 import { TrackingHubClient } from '../services/trackingHub';
 
@@ -31,6 +34,8 @@ type DashboardActions = {
   createOrder(request: CreateOrderRequest): Promise<void>;
   createDriver(request: CreateDriverRequest): Promise<void>;
   updateDriverLocation(driver: DriverLocation, latitude: number, longitude: number): Promise<void>;
+  findNearbyDrivers(latitude: number, longitude: number, radiusMeters?: number): Promise<NearbyDriver[]>;
+  assignDriver(orderId: string, driver: NearbyDriver): Promise<void>;
   optimisticStatusUpdate(order: Order, status: OrderStatus): Promise<void>;
   dismissToast(id: string): void;
 };
@@ -131,6 +136,36 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           dispatch({ type: 'toast.add', toast: createToast('success', `Ubicación de ${saved.name} actualizada`) });
         } catch (error) {
           dispatch({ type: 'toast.add', toast: createToast('error', friendlyApiMessage(error, 'No se pudo actualizar la ubicación.')) });
+          throw error;
+        }
+      },
+      async findNearbyDrivers(latitude, longitude, radiusMeters = 5000) {
+        try {
+          return await getNearbyDrivers(latitude, longitude, stateRef.current.authToken, radiusMeters, 10);
+        } catch (error) {
+          dispatch({ type: 'toast.add', toast: createToast('error', friendlyApiMessage(error, 'No se pudieron buscar drivers cercanos.')) });
+          throw error;
+        }
+      },
+      async assignDriver(orderId, driver) {
+        try {
+          await assignDriverToOrder(orderId, driver.id, stateRef.current.authToken);
+          dispatch({
+            type: 'driver.changed',
+            driver: {
+              driverId: driver.id,
+              name: driver.name,
+              vehicleType: driver.vehicleType,
+              status: 'Assigned',
+              latitude: driver.latitude,
+              longitude: driver.longitude,
+              updatedAt: new Date().toISOString()
+            }
+          });
+          dispatch({ type: 'toast.add', toast: createToast('success', `Driver ${driver.name} asignado`) });
+          await syncOrders();
+        } catch (error) {
+          dispatch({ type: 'toast.add', toast: createToast('error', friendlyApiMessage(error, 'No se pudo asignar el driver.')) });
           throw error;
         }
       },
