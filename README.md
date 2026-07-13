@@ -130,7 +130,7 @@ pnpm --filter order-tracking-ui dev
 By default, Vite proxies `/api` and `/hubs` to `https://localhost:7247`. Set `VITE_API_BASE_URL` in `src/order-tracking-ui/.env.local` only when the API is hosted elsewhere.
 
 Quality gates and performance smoke scripts are documented in `docs/QUALITY.md`. Deployment assets are documented in `docs/DEPLOYMENT.md`.
-The local end-to-end tutorial is documented in `docs/LOCAL_TESTING.md`, and role behavior is documented in `docs/ROLES_AND_PERMISSIONS.md`.
+The local setup tutorial is documented in `docs/LOCAL_TESTING.md`, guided scenarios are in `docs/USE_CASES.md`, and role behavior is documented in `docs/ROLES_AND_PERMISSIONS.md`.
 
 Create or update a local SQL Server database with:
 

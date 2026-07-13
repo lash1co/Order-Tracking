@@ -1,6 +1,6 @@
 # Local testing tutorial
 
-This guide walks through the complete local demo flow for the Order Tracking System. It is intended for people cloning the repository to learn how the backend, React dashboard, SignalR, SQL Server, Redis and RabbitMQ work together.
+This guide walks through the complete local demo setup for the Order Tracking System. After completing it, follow `docs/USE_CASES.md` for the guided product scenarios.
 
 ## 1. Start the stack
 

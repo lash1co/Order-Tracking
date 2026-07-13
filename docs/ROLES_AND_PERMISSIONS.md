@@ -2,6 +2,8 @@
 
 The project uses JWT bearer authentication. A production system would normally issue tokens from an identity provider. For this learning repository, local scripts generate signed demo tokens using the same `JWT_SIGNING_KEY` configured for the API.
 
+For a full guided walkthrough of each role in the running UI, see `docs/USE_CASES.md`.
+
 ## Demo tokens
 
 In Docker Compose, the React dashboard can request demo tokens from:
