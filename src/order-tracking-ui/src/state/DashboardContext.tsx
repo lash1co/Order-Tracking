@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef } from 'react';
 import type { ConnectionStatus, DriverLocation, Order, OrderStatus, Toast } from '../domain/types';
-import { getActiveOrders, updateOrderStatus } from '../services/apiClient';
+import { ApiError, createOrder, getActiveOrders, updateOrderStatus, type CreateOrderRequest } from '../services/apiClient';
 import { TrackingHubClient } from '../services/trackingHub';
 
 type DashboardState = {
@@ -19,6 +19,7 @@ type DashboardState = {
 type DashboardActions = {
   setAuthToken(token: string | null): void;
   reconnectAndSync(): Promise<void>;
+  createOrder(request: CreateOrderRequest): Promise<void>;
   optimisticStatusUpdate(order: Order, status: OrderStatus): Promise<void>;
   dismissToast(id: string): void;
 };
@@ -91,6 +92,17 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         );
       },
       reconnectAndSync,
+      async createOrder(request) {
+        try {
+          const saved = await createOrder(request, stateRef.current.authToken);
+          dispatch({ type: 'order.changed', order: saved });
+          dispatch({ type: 'toast.add', toast: createToast('success', `Orden ${shortId(saved.id)} creada`) });
+          await syncOrders();
+        } catch (error) {
+          dispatch({ type: 'toast.add', toast: createToast('error', friendlyApiMessage(error, 'No se pudo crear la orden.')) });
+          throw error;
+        }
+      },
       async optimisticStatusUpdate(order, status) {
         const previous = stateRef.current.orders.find((item) => item.id === order.id);
         dispatch({ type: 'order.changed', order: { ...order, status } });
@@ -116,6 +128,17 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   );
 
   return <DashboardContext.Provider value={{ state, actions }}>{children}</DashboardContext.Provider>;
+}
+
+function friendlyApiMessage(error: unknown, fallback: string) {
+  if (error instanceof ApiError) {
+    if (error.status === 401) return 'No autorizado: el token falta o expiró. Elige un rol demo y reintenta.';
+    if (error.status === 403) return 'Permiso denegado: este rol no puede ejecutar esa acción.';
+    if (error.status === 409) return 'Conflicto de datos: sincroniza el dashboard y reintenta.';
+    if (error.status === 429) return 'Demasiadas solicitudes: espera un momento y reintenta.';
+  }
+
+  return fallback;
 }
 
 export function useDashboard() {

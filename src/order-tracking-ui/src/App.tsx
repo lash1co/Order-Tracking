@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ConnectionBanner } from './features/ConnectionBanner';
+import { CreateOrderPanel } from './features/CreateOrderPanel';
 import { DashboardMap } from './features/DashboardMap';
 import { DemoRolePanel } from './features/DemoRolePanel';
 import { KpiCards } from './features/KpiCards';
@@ -38,6 +39,7 @@ export function App() {
       )}
 
       <ConnectionBanner connection={state.connection} onReconnect={actions.reconnectAndSync} />
+      <CreateOrderPanel onCreate={actions.createOrder} />
       <KpiCards orders={state.orders} drivers={state.drivers} />
 
       <section className="dashboard-grid">

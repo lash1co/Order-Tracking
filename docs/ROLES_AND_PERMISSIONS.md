@@ -71,7 +71,15 @@ Use Driver when you want to simulate delivery execution:
 
 ### Permission failure
 
-To prove authorization is working, generate a Driver token and call an Admin/Dispatcher-only endpoint such as:
+To prove authorization is working from the UI:
+
+1. Open `Configurar conexión`.
+2. Choose `Usar Driver`.
+3. Try to create an order from the `Crear orden` panel.
+
+The expected result is a permission error and no new order.
+
+You can also call an Admin/Dispatcher-only endpoint such as:
 
 ```http
 POST /api/v1/orders

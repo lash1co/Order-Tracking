@@ -88,19 +88,45 @@ Current UI support:
 
 - all roles can load the dashboard and connect to SignalR;
 - the role cards can request a local demo token when `DemoTokens:Enabled` is true;
+- `Admin` and `Dispatcher` can create orders from the dashboard;
 - `Admin`, `Dispatcher` and `Driver` can advance order statuses from the list;
-- creation of orders, creation of drivers and driver assignment are currently tested through the API or seed script.
+- creation of drivers and driver assignment are currently tested through the API or seed script.
 
-## 6. Real-time browser test
+## 6. Create an order from the UI
+
+1. Click `Configurar conexión`.
+2. Choose `Usar Admin` or `Usar Dispatcher`.
+3. In `Crear orden`, keep the generated demo GUIDs or replace them with valid GUIDs.
+4. Adjust the estimated delivery time.
+5. Add or remove items.
+6. Click `Crear orden`.
+
+Expected result:
+
+- a success toast appears;
+- the order appears in the live order list as `Pending`;
+- another open browser tab receives the new order through SignalR;
+- RabbitMQ receives an order event;
+- the active orders cache is invalidated.
+
+Now repeat the same flow with `Usar Driver`.
+
+Expected result:
+
+- the API rejects the command with `403 Forbidden`;
+- the UI shows a permission-related toast;
+- no order is created.
+
+## 7. Real-time browser test
 
 1. Open the dashboard in two browser tabs.
 2. Paste the same valid token in both tabs.
-3. Advance an order status in tab A.
-4. Watch tab B receive the update and toast without refreshing.
+3. Create an order or advance an order status in tab A.
+4. Watch tab B receive the update without refreshing.
 
 You can also restart the API container and observe the connection banner moving through disconnected/reconnecting states before syncing again.
 
-## 7. API role examples
+## 8. API role examples
 
 Use Swagger or any REST client with the bearer token.
 
@@ -127,10 +153,11 @@ PATCH /api/v1/orders/{orderId}/status
 Authorization: Bearer <driver-token>
 ```
 
-## 8. What this tutorial proves
+## 9. What this tutorial proves
 
 - Clean Architecture flow from controller to application handler to EF Core repository.
 - JWT authentication and role authorization.
+- Command execution from React forms.
 - Optimistic concurrency through order row versions.
 - Real-time updates with SignalR and reconnect/sync behavior.
 - Driver movement simulation.

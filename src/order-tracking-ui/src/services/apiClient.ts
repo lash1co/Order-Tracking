@@ -2,6 +2,16 @@ import type { Order, OrderStatus } from '../domain/types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
 
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 export type DemoTokenResponse = {
   token: string;
   roles: string[];
@@ -26,6 +36,32 @@ export async function getActiveOrders(token: string | null, signal?: AbortSignal
     signal
   });
   return readJson<Order[]>(response);
+}
+
+export type CreateOrderItemRequest = {
+  menuItemId: string;
+  quantity: number;
+  price: number;
+};
+
+export type CreateOrderRequest = {
+  customerId: string;
+  restaurantId: string;
+  estimatedDelivery: string;
+  items: CreateOrderItemRequest[];
+};
+
+export async function createOrder(request: CreateOrderRequest, token: string | null, signal?: AbortSignal): Promise<Order> {
+  const response = await fetch(`${apiBaseUrl}/api/v1/orders`, {
+    method: 'POST',
+    headers: {
+      ...buildHeaders(token),
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(request),
+    signal
+  });
+  return readJson<Order>(response);
 }
 
 export async function updateOrderStatus(
@@ -53,7 +89,7 @@ function buildHeaders(token: string | null): HeadersInit {
 async function readJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const body = await response.text();
-    throw new Error(body || `Request failed with ${response.status}`);
+    throw new ApiError(response.status, body || `Request failed with ${response.status}`);
   }
 
   return response.json() as Promise<T>;

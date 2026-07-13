@@ -23,6 +23,7 @@ body {
 }
 
 button,
+input,
 textarea {
   font: inherit;
 }
@@ -96,6 +97,7 @@ button:disabled {
 
 .hero-card p,
 .token-panel p,
+.create-order-panel p,
 .demo-role-panel p,
 .role-card p {
   color: #94a3b8;
@@ -300,6 +302,7 @@ button:disabled {
   margin-bottom: 1rem;
 }
 
+.entity-form label,
 .token-panel label {
   color: #cbd5e1;
   display: grid;
@@ -307,12 +310,16 @@ button:disabled {
   font-weight: 800;
 }
 
+.entity-form input,
 .token-panel textarea {
   background: rgba(2, 6, 23, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 1rem;
   color: #e2e8f0;
   padding: 0.8rem;
+}
+
+.token-panel textarea {
   resize: vertical;
 }
 
@@ -366,6 +373,54 @@ button:disabled {
   padding: 1rem 1.25rem;
 }
 
+.create-order-panel {
+  margin-bottom: 1rem;
+}
+
+.entity-form {
+  display: grid;
+  gap: 1rem;
+  padding: 0 1.25rem 1.25rem;
+}
+
+.form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.items-editor {
+  background: rgba(2, 6, 23, 0.28);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1.25rem;
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+}
+
+.items-editor-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.item-row {
+  align-items: end;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(220px, 1fr) minmax(110px, 0.25fr) minmax(120px, 0.25fr) auto;
+}
+
+.danger-button {
+  color: #fecaca;
+}
+
+.form-error {
+  border: 1px solid rgba(248, 113, 113, 0.22);
+  border-radius: 1rem;
+}
+
 .toast-region {
   bottom: 1rem;
   display: grid;
@@ -408,7 +463,12 @@ button:disabled {
 @media (max-width: 1060px) {
   .dashboard-grid,
   .kpi-grid,
+  .form-grid,
   .role-card-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .item-row {
     grid-template-columns: 1fr 1fr;
   }
 }
@@ -423,7 +483,12 @@ button:disabled {
   .connection-banner,
   .dashboard-grid,
   .kpi-grid,
+  .form-grid,
   .role-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .item-row {
     grid-template-columns: 1fr;
   }
 

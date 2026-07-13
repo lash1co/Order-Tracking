@@ -43,6 +43,8 @@ Create tutorial data through the API:
 
 The seed script creates sample drivers, orders and assignments so the React dashboard immediately shows live order rows, KPIs and map updates.
 
+The dashboard also includes a `Crear orden` panel. Use `Usar Admin` or `Usar Dispatcher` in the demo role panel to create orders from the UI; use `Usar Driver` to demonstrate the expected `403 Forbidden` permission path.
+
 Stop it with:
 
 ```powershell
