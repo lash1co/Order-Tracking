@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OrderTracking.Application.Abstractions.Persistence;
 using OrderTracking.Application.Drivers;
 using OrderTracking.Application.Drivers.GetDriverPerformance;
 using OrderTracking.Application.Drivers.GetNearestDrivers;
@@ -13,11 +14,22 @@ namespace OrderTracking.API.Controllers;
 [Authorize]
 [Route("api/v1/drivers")]
 public sealed class DriversController(
+    IDriverRepository drivers,
     CreateDriverHandler createDriver,
     UpdateDriverLocationHandler updateLocation,
     GetNearestDriversHandler getNearestDrivers,
     GetDriverPerformanceHandler getDriverPerformance) : ControllerBase
 {
+    [HttpGet("active")]
+    [ProducesResponseType<IReadOnlyList<DriverLocationDto>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetActive([FromQuery] int take = 100, CancellationToken cancellationToken = default)
+    {
+        var safeTake = Math.Clamp(take, 1, 500);
+        var result = await drivers.GetActiveAsync(safeTake, cancellationToken);
+        var occurredAt = DateTimeOffset.UtcNow;
+        return Ok(result.Select(driver => DriverLocationDto.From(driver, occurredAt)).ToArray());
+    }
+
     [HttpPost]
     [Authorize(Roles = "Admin,Dispatcher")]
     public async Task<IActionResult> Create(CreateDriverRequest request, CancellationToken cancellationToken)

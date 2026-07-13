@@ -12,6 +12,15 @@ internal sealed class DriverRepository(OrderTrackingDbContext dbContext) : IDriv
     public Task<Driver?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
         dbContext.Drivers.SingleOrDefaultAsync(driver => driver.Id == id, cancellationToken);
 
+    public async Task<IReadOnlyList<Driver>> GetActiveAsync(int take, CancellationToken cancellationToken) =>
+        await dbContext.Drivers
+            .AsNoTracking()
+            .Where(driver => driver.Status != DriverStatus.Offline)
+            .OrderBy(driver => driver.Name)
+            .ThenBy(driver => driver.Id)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<DriverDistance>> GetNearestAvailableAsync(
         double latitude,
         double longitude,

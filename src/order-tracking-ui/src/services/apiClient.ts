@@ -38,6 +38,14 @@ export async function getActiveOrders(token: string | null, signal?: AbortSignal
   return readJson<Order[]>(response);
 }
 
+export async function getActiveDrivers(token: string | null, signal?: AbortSignal): Promise<DriverLocation[]> {
+  const response = await fetch(`${apiBaseUrl}/api/v1/drivers/active?take=200`, {
+    headers: buildHeaders(token),
+    signal
+  });
+  return readJson<DriverLocation[]>(response);
+}
+
 export type CreateOrderItemRequest = {
   menuItemId: string;
   quantity: number;

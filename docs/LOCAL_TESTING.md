@@ -154,6 +154,7 @@ Expected result:
 
 - the map marker moves;
 - another browser tab receives the driver location update through SignalR.
+- after refreshing the page, visible active drivers are loaded again through `GET /api/v1/drivers/active`.
 
 Permission check:
 

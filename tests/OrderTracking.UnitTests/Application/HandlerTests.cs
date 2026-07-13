@@ -267,6 +267,9 @@ public sealed class HandlerTests
         Task<Driver?> IDriverRepository.GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
             Task.FromResult(Drivers.SingleOrDefault(driver => driver.Id == id));
 
+        public Task<IReadOnlyList<Driver>> GetActiveAsync(int take, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<Driver>>(Drivers.Where(driver => driver.Status != DriverStatus.Offline).Take(take).ToArray());
+
         public Task<IReadOnlyList<DriverDistance>> GetNearestAvailableAsync(
             double latitude,
             double longitude,

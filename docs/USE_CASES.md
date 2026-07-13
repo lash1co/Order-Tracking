@@ -78,6 +78,7 @@ Expected result:
 - the map updates;
 - a success toast appears;
 - the order can now move to `OutForDelivery`.
+- if the page is refreshed, the assigned driver is loaded again by the active-drivers sync endpoint.
 
 Technical path demonstrated:
 

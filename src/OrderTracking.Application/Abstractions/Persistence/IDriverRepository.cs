@@ -6,6 +6,7 @@ public interface IDriverRepository
 {
     Task AddAsync(Driver driver, CancellationToken cancellationToken);
     Task<Driver?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Driver>> GetActiveAsync(int take, CancellationToken cancellationToken);
     Task<IReadOnlyList<DriverDistance>> GetNearestAvailableAsync(
         double latitude,
         double longitude,

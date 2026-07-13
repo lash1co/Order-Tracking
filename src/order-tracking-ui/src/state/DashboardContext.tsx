@@ -5,9 +5,10 @@ import {
   assignDriverToOrder,
   createDriver,
   createOrder,
-  getNearbyDrivers,
-  getDriverPerformance,
+  getActiveDrivers,
   getActiveOrders,
+  getDriverPerformance,
+  getNearbyDrivers,
   updateDriverLocation,
   updateOrderStatus,
   type CreateDriverRequest,
@@ -53,6 +54,7 @@ type DashboardContextValue = {
 type Action =
   | { type: 'token.set'; token: string | null }
   | { type: 'orders.synced'; orders: Order[]; syncedAt: string }
+  | { type: 'drivers.synced'; drivers: DriverLocation[] }
   | { type: 'order.changed'; order: Order }
   | { type: 'driver.changed'; driver: DriverLocation }
   | { type: 'connection.changed'; status: ConnectionStatus; connectionId?: string | null; error?: string }
@@ -82,17 +84,27 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'orders.synced', orders, syncedAt: new Date().toISOString() });
   }, []);
 
+  const syncDrivers = useCallback(async () => {
+    const controller = new AbortController();
+    const drivers = await getActiveDrivers(stateRef.current.authToken, controller.signal);
+    dispatch({ type: 'drivers.synced', drivers });
+  }, []);
+
+  const syncDashboard = useCallback(async () => {
+    await Promise.all([syncOrders(), syncDrivers()]);
+  }, [syncDrivers, syncOrders]);
+
   const reconnectAndSync = useCallback(async () => {
-    await syncOrders();
+    await syncDashboard();
     await hubRef.current?.disconnect();
-    hubRef.current = createHubClient(() => stateRef.current.authToken, dispatch, syncOrders);
+    hubRef.current = createHubClient(() => stateRef.current.authToken, dispatch, syncDashboard);
     await hubRef.current.connect();
-  }, [syncOrders]);
+  }, [syncDashboard]);
 
   useEffect(() => {
-    hubRef.current = createHubClient(() => stateRef.current.authToken, dispatch, syncOrders);
-    void syncOrders().catch((error: Error) =>
-      dispatch({ type: 'toast.add', toast: createToast('warning', `No se pudieron cargar órdenes: ${error.message}`) })
+    hubRef.current = createHubClient(() => stateRef.current.authToken, dispatch, syncDashboard);
+    void syncDashboard().catch((error: Error) =>
+      dispatch({ type: 'toast.add', toast: createToast('warning', `No se pudieron cargar datos iniciales: ${error.message}`) })
     );
     void hubRef.current.connect().catch((error: Error) =>
       dispatch({ type: 'connection.changed', status: 'disconnected', error: error.message })
@@ -101,7 +113,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     return () => {
       void hubRef.current?.disconnect();
     };
-  }, [syncOrders]);
+  }, [syncDashboard]);
 
   const actions = useMemo<DashboardActions>(
     () => ({
@@ -169,7 +181,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
             }
           });
           dispatch({ type: 'toast.add', toast: createToast('success', `Driver ${driver.name} asignado`) });
-          await syncOrders();
+          await syncDashboard();
         } catch (error) {
           dispatch({ type: 'toast.add', toast: createToast('error', friendlyApiMessage(error, 'No se pudo asignar el driver.')) });
           throw error;
@@ -191,20 +203,24 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           const saved = await updateOrderStatus(order, status, stateRef.current.authToken);
           dispatch({ type: 'order.changed', order: saved });
           dispatch({ type: 'toast.add', toast: createToast('success', `Orden ${shortId(order.id)} actualizada`) });
+          await syncDrivers();
         } catch (error) {
           if (previous) dispatch({ type: 'order.changed', order: previous });
           dispatch({
             type: 'toast.add',
-            toast: createToast('error', `No se pudo actualizar la orden ${shortId(order.id)}. Reconciliando datos.`)
+            toast: createToast(
+              'error',
+              `${friendlyApiMessage(error, `No se pudo actualizar la orden ${shortId(order.id)}.`)} Reconciliando datos.`
+            )
           });
-          await syncOrders();
+          await syncDashboard();
         }
       },
       dismissToast(id) {
         dispatch({ type: 'toast.dismiss', id });
       }
     }),
-    [reconnectAndSync, syncOrders]
+    [reconnectAndSync, syncDashboard, syncDrivers, syncOrders]
   );
 
   return <DashboardContext.Provider value={{ state, actions }}>{children}</DashboardContext.Provider>;
@@ -233,6 +249,8 @@ function reducer(state: DashboardState, action: Action): DashboardState {
       return { ...state, authToken: action.token, authInfo: decodeAuthInfo(action.token) };
     case 'orders.synced':
       return { ...state, orders: action.orders, connection: { ...state.connection, lastSyncAt: action.syncedAt } };
+    case 'drivers.synced':
+      return { ...state, drivers: action.drivers };
     case 'order.changed':
       return { ...state, orders: upsertBy(state.orders, action.order, (order) => order.id) };
     case 'driver.changed':
@@ -254,7 +272,7 @@ function reducer(state: DashboardState, action: Action): DashboardState {
   }
 }
 
-function createHubClient(getToken: () => string | null, dispatch: React.Dispatch<Action>, syncOrders: () => Promise<void>) {
+function createHubClient(getToken: () => string | null, dispatch: React.Dispatch<Action>, syncDashboard: () => Promise<void>) {
   return new TrackingHubClient(getToken, {
     onOrderChanged(order) {
       dispatch({ type: 'order.changed', order });
@@ -268,7 +286,7 @@ function createHubClient(getToken: () => string | null, dispatch: React.Dispatch
     },
     onConnected(connectionId) {
       dispatch({ type: 'connection.changed', status: 'connected', connectionId });
-      void syncOrders();
+      void syncDashboard();
     },
     onReconnecting(error) {
       dispatch({ type: 'connection.changed', status: 'reconnecting', error: error?.message });
