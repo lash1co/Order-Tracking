@@ -8,11 +8,11 @@ public sealed class TrackingHub : Hub
 {
     public const string DashboardGroup = "dashboard";
 
-    public async Task SubscribeDashboard(CancellationToken cancellationToken) =>
-        await Groups.AddToGroupAsync(Context.ConnectionId, DashboardGroup, cancellationToken);
+    public async Task SubscribeDashboard() =>
+        await Groups.AddToGroupAsync(Context.ConnectionId, DashboardGroup, Context.ConnectionAborted);
 
-    public async Task UnsubscribeDashboard(CancellationToken cancellationToken) =>
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, DashboardGroup, cancellationToken);
+    public async Task UnsubscribeDashboard() =>
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, DashboardGroup, Context.ConnectionAborted);
 
     public override async Task OnConnectedAsync()
     {
