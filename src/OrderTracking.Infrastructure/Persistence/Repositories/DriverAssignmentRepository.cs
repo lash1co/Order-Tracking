@@ -9,6 +9,11 @@ internal sealed class DriverAssignmentRepository(OrderTrackingDbContext dbContex
     public Task AddAsync(DriverAssignment assignment, CancellationToken cancellationToken) =>
         dbContext.DriverAssignments.AddAsync(assignment, cancellationToken).AsTask();
 
+    public Task<DriverAssignment?> GetActiveForOrderAsync(Guid orderId, CancellationToken cancellationToken) =>
+        dbContext.DriverAssignments.SingleOrDefaultAsync(
+            assignment => assignment.OrderId == orderId && assignment.CompletedAt == null,
+            cancellationToken);
+
     public Task<bool> HasActiveForOrderAsync(Guid orderId, CancellationToken cancellationToken) =>
         dbContext.DriverAssignments.AnyAsync(
             assignment => assignment.OrderId == orderId && assignment.CompletedAt == null,

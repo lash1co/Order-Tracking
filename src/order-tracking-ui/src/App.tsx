@@ -7,6 +7,7 @@ import { DemoRolePanel } from './features/DemoRolePanel';
 import { DriverAdminPanel } from './features/DriverAdminPanel';
 import { KpiCards } from './features/KpiCards';
 import { OrderList } from './features/OrderList';
+import { OperationalMetricsPanel } from './features/OperationalMetricsPanel';
 import { ToastRegion } from './features/ToastRegion';
 import { TokenForm } from './features/TokenForm';
 import { useDashboard } from './state/DashboardContext';
@@ -49,6 +50,7 @@ export function App() {
         onFindNearby={actions.findNearbyDrivers}
         onAssign={actions.assignDriver}
       />
+      <OperationalMetricsPanel orders={state.orders} drivers={state.drivers} onGetDriverPerformance={actions.getDriverPerformance} />
       <KpiCards orders={state.orders} drivers={state.drivers} />
 
       <section className="dashboard-grid">

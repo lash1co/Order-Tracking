@@ -173,6 +173,8 @@ Expected result:
 - the assigned driver changes from `Available` to `Assigned`;
 - the map/list updates through SignalR;
 - the order can now be advanced to `OutForDelivery` from the order list.
+- when the order reaches `OutForDelivery`, the driver changes to `Delivering`;
+- when the order reaches `Delivered`, the assignment is completed and the driver becomes `Available` again.
 
 Permission check:
 
@@ -202,7 +204,24 @@ Expected result:
 
 You can also restart the API container and observe the connection banner moving through disconnected/reconnecting states before syncing again.
 
-## 10. API role examples
+## 10. Check operational metrics
+
+1. Create or seed demo data.
+2. Assign a driver to an order.
+3. Advance the order to `OutForDelivery`.
+4. Advance the order to `Delivered`.
+5. In `Métricas y performance`, select the driver.
+6. Click `Consultar performance`.
+
+Expected result:
+
+- `Entregas completadas` increases after delivery;
+- `Promedio entrega` shows the average minutes between assignment and completion;
+- order/driver state bars reflect the currently loaded dashboard data.
+
+Note: active order queries normally focus on operational orders, so delivered orders may disappear from the live order list after synchronization. The performance endpoint reads assignment history from the database.
+
+## 11. API role examples
 
 Use Swagger or any REST client with the bearer token.
 
@@ -238,13 +257,15 @@ Authorization: Bearer <admin-or-dispatcher-token>
 
 Driver cannot assign drivers. The expected result is `403 Forbidden`.
 
-## 11. What this tutorial proves
+## 12. What this tutorial proves
 
 - Clean Architecture flow from controller to application handler to EF Core repository.
 - JWT authentication and role authorization.
 - Command execution from React forms.
 - Geospatial nearby-driver queries.
 - Driver assignment conflict prevention.
+- Assignment completion when orders are delivered.
+- Driver performance analytics from assignment history.
 - Driver location updates from React to SignalR.
 - Optimistic concurrency through order row versions.
 - Real-time updates with SignalR and reconnect/sync behavior.

@@ -40,6 +40,8 @@ Generate role-specific tokens:
 | Query nearby drivers | Yes | Yes | Yes |
 | Query driver performance | Yes | Yes | Yes |
 
+Driver performance is read-only. The delivered-count metric increases when an assigned order reaches `Delivered`, because the active assignment is completed and the driver is released back to `Available`.
+
 ## Tutorial scenarios
 
 ### Admin

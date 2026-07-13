@@ -38,4 +38,6 @@ public sealed class Driver : Entity
 
         Status = status;
     }
+
+    public void CompleteDelivery() => Status = DriverStatus.Available;
 }

@@ -396,6 +396,10 @@ button:disabled {
   margin-bottom: 1rem;
 }
 
+.metrics-panel {
+  margin-bottom: 1rem;
+}
+
 .entity-form {
   display: grid;
   gap: 1rem;
@@ -464,6 +468,116 @@ button:disabled {
 .form-error {
   border: 1px solid rgba(248, 113, 113, 0.22);
   border-radius: 1rem;
+}
+
+.metrics-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 0 1.25rem 1.25rem;
+}
+
+.metric-card {
+  background: rgba(2, 6, 23, 0.28);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1.25rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.metric-card h3 {
+  margin: 0;
+}
+
+.metric-bars {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.metric-bar {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.metric-bar div:first-child {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.metric-bar span,
+.muted-text,
+.metric-definition-list dt {
+  color: #94a3b8;
+}
+
+.metric-bar-track {
+  background: rgba(148, 163, 184, 0.14);
+  border-radius: 999px;
+  height: 0.55rem;
+  overflow: hidden;
+}
+
+.metric-bar-track span {
+  background: linear-gradient(90deg, #38bdf8, #22c55e);
+  display: block;
+  height: 100%;
+}
+
+.metric-definition-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.metric-definition-list div {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.metric-definition-list dd {
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin: 0;
+}
+
+.performance-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.performance-form label {
+  color: #cbd5e1;
+  display: grid;
+  gap: 0.5rem;
+  font-weight: 800;
+}
+
+.performance-form select {
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 1rem;
+  color: #e2e8f0;
+  padding: 0.8rem;
+}
+
+.performance-form select option {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.performance-result {
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  padding-top: 1rem;
+}
+
+.warn-pill {
+  background: rgba(249, 115, 22, 0.14);
+  color: #fdba74;
 }
 
 .driver-list,
@@ -555,6 +669,7 @@ button:disabled {
 @media (max-width: 1060px) {
   .dashboard-grid,
   .driver-admin-grid,
+  .metrics-grid,
   .kpi-grid,
   .form-grid,
   .form-grid.assignment-grid,
@@ -577,6 +692,7 @@ button:disabled {
   .connection-banner,
   .dashboard-grid,
   .driver-admin-grid,
+  .metrics-grid,
   .kpi-grid,
   .form-grid,
   .form-grid.assignment-grid,

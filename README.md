@@ -49,6 +49,8 @@ The `Administrar drivers` panel lets `Admin` or `Dispatcher` create drivers and 
 
 The `Asignar driver a orden` panel demonstrates the geospatial query and dispatch flow: search available drivers near a coordinate, assign one to a pending/preparing order, then advance the order to `OutForDelivery`.
 
+The `Métricas y performance` panel summarizes loaded order/driver states and calls the driver performance endpoint. Delivering an assigned order completes the assignment, releases the driver and updates the performance history.
+
 Stop it with:
 
 ```powershell

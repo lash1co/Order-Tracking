@@ -87,7 +87,7 @@ public sealed class HandlerTests
         var store = new FakeStore();
         var order = CreateOrder();
         store.Orders.Add(order);
-        var handler = new UpdateOrderStatusHandler(store, store, store, store, store, store);
+        var handler = new UpdateOrderStatusHandler(store, store, store, store, store, store, store);
 
         await Assert.ThrowsAsync<ConflictException>(() => handler.Handle(
             new UpdateOrderStatusCommand(order.Id, OrderStatus.Preparing, "AQ=="), CancellationToken.None));
@@ -99,7 +99,7 @@ public sealed class HandlerTests
         var store = new FakeStore();
         var order = CreateOrder();
         store.Orders.Add(order);
-        var handler = new UpdateOrderStatusHandler(store, store, store, store, store, store);
+        var handler = new UpdateOrderStatusHandler(store, store, store, store, store, store, store);
 
         await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(
             new UpdateOrderStatusCommand(order.Id, OrderStatus.Preparing, "not-base64"), CancellationToken.None));
@@ -111,7 +111,7 @@ public sealed class HandlerTests
         var store = new FakeStore();
         var order = CreateOrder();
         store.Orders.Add(order);
-        var handler = new UpdateOrderStatusHandler(store, store, store, store, store, store);
+        var handler = new UpdateOrderStatusHandler(store, store, store, store, store, store, store);
 
         var result = await handler.Handle(
             new UpdateOrderStatusCommand(order.Id, OrderStatus.Preparing, string.Empty), CancellationToken.None);
@@ -174,6 +174,29 @@ public sealed class HandlerTests
         await Assert.ThrowsAsync<ConflictException>(() =>
             new AssignDriverHandler(store, store, store, store, store, store, store).Handle(
                 new AssignDriverCommand(order.Id, driver.Id), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task DeliveringAssignedOrderCompletesAssignmentAndReleasesDriver()
+    {
+        var store = new FakeStore();
+        var order = CreateOrder();
+        var driver = CreateDriver();
+        driver.ChangeStatus(DriverStatus.Available);
+        store.Orders.Add(order);
+        store.Drivers.Add(driver);
+        var handler = new UpdateOrderStatusHandler(store, store, store, store, store, store, store);
+
+        await handler.Handle(new UpdateOrderStatusCommand(order.Id, OrderStatus.Preparing, string.Empty), CancellationToken.None);
+        await new AssignDriverHandler(store, store, store, store, store, store, store).Handle(
+            new AssignDriverCommand(order.Id, driver.Id), CancellationToken.None);
+        await handler.Handle(new UpdateOrderStatusCommand(order.Id, OrderStatus.OutForDelivery, string.Empty), CancellationToken.None);
+
+        var result = await handler.Handle(new UpdateOrderStatusCommand(order.Id, OrderStatus.Delivered, string.Empty), CancellationToken.None);
+
+        Assert.Equal(OrderStatus.Delivered, result.Status);
+        Assert.NotNull(Assert.Single(store.Assignments).CompletedAt);
+        Assert.Equal(DriverStatus.Available, driver.Status);
     }
 
     [Fact]
@@ -260,6 +283,9 @@ public sealed class HandlerTests
             Assignments.Add(assignment);
             return Task.CompletedTask;
         }
+
+        public Task<DriverAssignment?> GetActiveForOrderAsync(Guid orderId, CancellationToken cancellationToken) =>
+            Task.FromResult(Assignments.SingleOrDefault(item => item.OrderId == orderId && item.CompletedAt is null));
 
         public Task<bool> HasActiveForOrderAsync(Guid orderId, CancellationToken cancellationToken) =>
             Task.FromResult(Assignments.Any(item => item.OrderId == orderId && item.CompletedAt is null));

@@ -6,11 +6,13 @@ import {
   createDriver,
   createOrder,
   getNearbyDrivers,
+  getDriverPerformance,
   getActiveOrders,
   updateDriverLocation,
   updateOrderStatus,
   type CreateDriverRequest,
   type CreateOrderRequest,
+  type DriverPerformance,
   type NearbyDriver
 } from '../services/apiClient';
 import { TrackingHubClient } from '../services/trackingHub';
@@ -36,6 +38,7 @@ type DashboardActions = {
   updateDriverLocation(driver: DriverLocation, latitude: number, longitude: number): Promise<void>;
   findNearbyDrivers(latitude: number, longitude: number, radiusMeters?: number): Promise<NearbyDriver[]>;
   assignDriver(orderId: string, driver: NearbyDriver): Promise<void>;
+  getDriverPerformance(driverId: string): Promise<DriverPerformance>;
   optimisticStatusUpdate(order: Order, status: OrderStatus): Promise<void>;
   dismissToast(id: string): void;
 };
@@ -166,6 +169,14 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           await syncOrders();
         } catch (error) {
           dispatch({ type: 'toast.add', toast: createToast('error', friendlyApiMessage(error, 'No se pudo asignar el driver.')) });
+          throw error;
+        }
+      },
+      async getDriverPerformance(driverId) {
+        try {
+          return await getDriverPerformance(driverId, stateRef.current.authToken);
+        } catch (error) {
+          dispatch({ type: 'toast.add', toast: createToast('error', friendlyApiMessage(error, 'No se pudo cargar la performance del driver.')) });
           throw error;
         }
       },

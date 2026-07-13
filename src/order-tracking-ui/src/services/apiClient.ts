@@ -74,6 +74,12 @@ export type NearbyDriver = {
   distanceMeters: number;
 };
 
+export type DriverPerformance = {
+  driverId: string;
+  completedDeliveries: number;
+  averageDeliveryMinutes: number;
+};
+
 export async function createDriver(request: CreateDriverRequest, token: string | null, signal?: AbortSignal): Promise<DriverLocation> {
   const response = await fetch(`${apiBaseUrl}/api/v1/drivers`, {
     method: 'POST',
@@ -159,6 +165,14 @@ export async function assignDriverToOrder(orderId: string, driverId: string, tok
   });
   const result = await readJson<{ assignmentId: string }>(response);
   return result.assignmentId;
+}
+
+export async function getDriverPerformance(driverId: string, token: string | null, signal?: AbortSignal): Promise<DriverPerformance> {
+  const response = await fetch(`${apiBaseUrl}/api/v1/drivers/${driverId}/performance`, {
+    headers: buildHeaders(token),
+    signal
+  });
+  return readJson<DriverPerformance>(response);
 }
 
 export async function createOrder(request: CreateOrderRequest, token: string | null, signal?: AbortSignal): Promise<Order> {
