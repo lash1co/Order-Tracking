@@ -181,6 +181,7 @@ Expected result:
 
 - a success toast appears;
 - the assigned driver changes from `Available` to `Assigned`;
+- the assigned order disappears from the assignment dropdown, so it cannot be selected again from the normal UI flow;
 - the map/list updates through SignalR;
 - the order can now be advanced to `OutForDelivery` from the order list.
 - when the order reaches `OutForDelivery`, the driver changes to `Delivering`;
@@ -201,7 +202,8 @@ Expected result:
 Conflict check:
 
 1. Assign a driver to an order.
-2. Try assigning the same driver or the same order again.
+2. Confirm that the assigned order is no longer listed in the assignment dropdown.
+3. To demonstrate the server-side conflict anyway, retry the same assignment from Swagger/Postman/cURL or from a stale browser tab.
 
 Expected result:
 
@@ -235,7 +237,8 @@ Expected result:
 ### 409 Conflict
 
 1. Assign a driver to an order.
-2. Try assigning the same order or same driver again.
+2. Confirm that the normal assignment dropdown hides the assigned order.
+3. Retry the same order/driver assignment from Swagger/Postman/cURL or from a stale browser tab.
 
 Expected result:
 

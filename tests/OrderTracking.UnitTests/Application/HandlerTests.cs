@@ -58,9 +58,10 @@ public sealed class HandlerTests
         var order = CreateOrder();
         store.Orders.Add(order);
 
-        var result = await new GetOrderHandler(store).Handle(order.Id, CancellationToken.None);
+        var result = await new GetOrderHandler(store, store).Handle(order.Id, CancellationToken.None);
 
         Assert.Equal(order.Id, result.Id);
+        Assert.False(result.HasActiveDriverAssignment);
     }
 
     [Fact]
@@ -69,7 +70,7 @@ public sealed class HandlerTests
         var store = new FakeStore();
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
-            new GetOrderHandler(store).Handle(Guid.NewGuid(), CancellationToken.None));
+            new GetOrderHandler(store, store).Handle(Guid.NewGuid(), CancellationToken.None));
     }
 
     [Fact]
@@ -78,7 +79,25 @@ public sealed class HandlerTests
         var store = new FakeStore();
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
-            new GetActiveOrdersHandler(store, store).Handle(new GetActiveOrdersQuery(0, 50), CancellationToken.None));
+            new GetActiveOrdersHandler(store, store, store).Handle(new GetActiveOrdersQuery(0, 50), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task GetActiveOrdersMarksOrdersWithActiveAssignments()
+    {
+        var store = new FakeStore();
+        var order = CreateOrder();
+        var driver = CreateDriver();
+        driver.ChangeStatus(DriverStatus.Available);
+        store.Orders.Add(order);
+        store.Drivers.Add(driver);
+        await new AssignDriverHandler(store, store, store, store, store, store, store).Handle(
+            new AssignDriverCommand(order.Id, driver.Id), CancellationToken.None);
+
+        var result = await new GetActiveOrdersHandler(store, store, store).Handle(
+            new GetActiveOrdersQuery(1, 50), CancellationToken.None);
+
+        Assert.True(Assert.Single(result).HasActiveDriverAssignment);
     }
 
     [Fact]

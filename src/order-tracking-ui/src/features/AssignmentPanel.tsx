@@ -19,7 +19,10 @@ const defaultSearch = {
 
 export function AssignmentPanel({ auth, orders, drivers, onFindNearby, onAssign }: Props) {
   const assignableOrders = useMemo(
-    () => orders.filter((order) => order.status === 'Pending' || order.status === 'Preparing'),
+    () =>
+      orders.filter(
+        (order) => (order.status === 'Pending' || order.status === 'Preparing') && !order.hasActiveDriverAssignment
+      ),
     [orders]
   );
   const visibleAvailableDrivers = useMemo(
@@ -115,7 +118,7 @@ export function AssignmentPanel({ auth, orders, drivers, onFindNearby, onAssign 
             Orden
             <select disabled={assignableOrders.length === 0} value={selectedOrder?.id ?? ''} onChange={(event) => setOrderId(event.target.value)}>
               {assignableOrders.length === 0 ? (
-                <option value="">Sin órdenes asignables</option>
+                <option value="">Sin órdenes pendientes/preparando sin driver</option>
               ) : (
                 assignableOrders.map((order) => (
                   <option key={order.id} value={order.id}>

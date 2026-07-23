@@ -3,7 +3,10 @@ using OrderTracking.Application.Abstractions.Persistence;
 
 namespace OrderTracking.Application.Orders.GetActiveOrders;
 
-public sealed class GetActiveOrdersHandler(IOrderRepository orders, IActiveOrdersCache cache)
+public sealed class GetActiveOrdersHandler(
+    IOrderRepository orders,
+    IDriverAssignmentRepository assignments,
+    IActiveOrdersCache cache)
 {
     public async Task<IReadOnlyList<OrderDto>> Handle(GetActiveOrdersQuery query, CancellationToken cancellationToken)
     {
@@ -16,7 +19,11 @@ public sealed class GetActiveOrdersHandler(IOrderRepository orders, IActiveOrder
             return cached;
 
         var result = await orders.GetActiveAsync(skip, query.PageSize, cancellationToken);
-        var activeOrders = result.Select(OrderDto.From).ToArray();
+        var activeOrders = await Task.WhenAll(result.Select(async order =>
+            OrderDto.From(
+                order,
+                await assignments.HasActiveForOrderAsync(order.Id, cancellationToken))));
+
         await cache.SetAsync(skip, query.PageSize, activeOrders, cancellationToken);
         return activeOrders;
     }

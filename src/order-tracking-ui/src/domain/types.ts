@@ -16,6 +16,7 @@ export type Order = {
   estimatedDelivery: string;
   actualDelivery?: string | null;
   version: string;
+  hasActiveDriverAssignment: boolean;
   items: OrderItem[];
 };
 

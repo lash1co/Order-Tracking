@@ -59,7 +59,7 @@ public sealed class UpdateOrderStatusHandler(
         }
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        var dto = OrderDto.From(order);
+        var dto = OrderDto.From(order, activeAssignment is not null && activeAssignment.CompletedAt is null);
         var occurredAt = DateTimeOffset.UtcNow;
         await cache.InvalidateAsync(cancellationToken);
         await notifier.OrderChangedAsync(dto, cancellationToken);

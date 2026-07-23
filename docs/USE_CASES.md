@@ -77,6 +77,7 @@ Expected result:
 - the driver changes to `Assigned`;
 - the map updates;
 - a success toast appears;
+- the assigned order is removed from the assignment dropdown to prevent accidental double assignment;
 - the order can now move to `OutForDelivery`.
 - if the page is refreshed, the assigned driver is loaded again by the active-drivers sync endpoint.
 
